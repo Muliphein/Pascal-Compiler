@@ -135,28 +135,37 @@ int main() {
             GlobalVariable *globalVar = new GlobalVariable(*(the_module.get()), Type::getInt32Ty(the_context),  false,
               GlobalValue::ExternalLinkage, ConstantInt::get(Type::getInt32Ty(the_context), 0), "fuck");
 
-            char s[13]="hello world\n";
+            char s[16]="%d hello world\n";
             std::vector<llvm::Constant*> values;
             Constant* c = ConstantInt::get(Type::getInt8Ty(the_context), 0);
-            for (int i=0; i<13; ++i) values.push_back(ConstantInt::get(Type::getInt8Ty(the_context), s[i]));
-            Constant* init =ConstantArray::get(ArrayType::get(Type::getInt8Ty(the_context), 13), values);
+            for (int i=0; i<16; ++i) values.push_back(ConstantInt::get(Type::getInt8Ty(the_context), s[i]));
+            Constant* init =ConstantArray::get(ArrayType::get(Type::getInt8Ty(the_context), 16), values);
         
-            GlobalVariable *globalStr = new GlobalVariable(*(the_module.get()), ArrayType::get(Type::getInt8Ty(the_context), 13),  false,
+            GlobalVariable *globalStr = new GlobalVariable(*(the_module.get()), ArrayType::get(Type::getInt8Ty(the_context), 16),  false,
               GlobalValue::ExternalLinkage, init, "fuck_string");
 
             Function* TheFunction =the_module->getFunction("printf");
             
+            auto format = builder.CreateGlobalString("hello!");
+            auto format_pos = builder.CreateGEP(format, {builder.getInt32(0), builder.getInt32(0)});
+
             //Important
             // global variable is a pointer
             // 0 -> point to the array's pointer
             // 1 -> point to the array[index] 's position
             // always the position , need use load and store
             auto res = builder.CreateGEP(globalStr, {builder.getInt32(0), builder.getInt32(0)});
-            auto modify = builder.CreateGEP(globalStr, {builder.getInt32(0), builder.getInt32(1)});
-            builder.CreateStore(ConstantInt::get(Type::getInt8Ty(the_context), 48), modify);
+            // auto modify = builder.CreateGEP(globalStr, {builder.getInt32(0), builder.getInt32(1)});
+            // builder.CreateStore(ConstantInt::get(Type::getInt8Ty(the_context), 48), modify);
+            
+            // auto fuck_pos = builder.CreateGEP(globalVar, builder.getInt32(0));
+            auto fuck_else = builder.CreateLoad(Type::getInt32Ty(the_context), globalVar);
 
             std::vector <Value*> put_argss;
-            put_argss.push_back(res);
+            // put_argss.push_back(res);
+            // put_argss.push_back(fuck_else);
+            put_argss.push_back(format_pos);
+
             ArrayRef  <Value*> printf_Ref(put_argss);
             builder.CreateCall(TheFunction, printf_Ref);
         }

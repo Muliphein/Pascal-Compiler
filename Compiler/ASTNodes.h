@@ -8,7 +8,7 @@ using namespace llvm;
 namespace ASTNodes{
 
     class BasicNode{
-        public:
+      public:
         virtual ~BasicNode() = default;
         virtual CodeGenResult* code_gen() = 0;
     };
@@ -89,7 +89,7 @@ namespace ASTNodes{
     class SysWriteNode: public BasicNode{
       public:
         bool has_newline;
-        std::vector<std::unique_ptr<BasicNode> > args;
+        std::vector<std::shared_ptr<BasicNode> > args;
         SysWriteNode(){};
         CodeGenResult* code_gen() override;
     };
@@ -109,17 +109,24 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
     };
 
+    class ProgramNode: public BasicNode{
+      public:
+        ProgramNode(){};
+        CodeGenResult* code_gen() override;
+    };
+
     class CodeGenResult{
       public:
-        AllocaInst* alloc;
+        Value* mem;
         Type* type;
         Value* value;
 
-        CodeGenResult(AllocaInst* _alloc, Type* _type, Value* _value){
-            alloc=_alloc;
-            type=_type;
-            value=_value;
+        CodeGenResult(AllocaInst* _mem, Type* _type, Value* _value){
+            mem = _mem;
+            type = _type;
+            value = _value;
         }
+        ~CodeGenResult();
     };
 
 }

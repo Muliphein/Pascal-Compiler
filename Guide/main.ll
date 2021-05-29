@@ -6,7 +6,8 @@ target triple = "x86_64-pc-linux-gnu"
 %MyStruct = type { i32, i32, double }
 
 @fuck.1 = global i32 0
-@fuck_string = global [13 x i8] c"hello world\0A\00"
+@fuck_string = global [16 x i8] c"%d hello world\0A\00"
+@0 = private unnamed_addr constant [7 x i8] c"hello!\00", align 1
 
 declare i32 @fuck(%MyStruct*)
 
@@ -34,7 +35,7 @@ if_else:                                          ; preds = %max_entry
 define i32 @main() {
 main_entry:
   %0 = call i32 @max(i32 -10, i32 20)
-  store i8 48, i8* getelementptr inbounds ([13 x i8], [13 x i8]* @fuck_string, i32 0, i32 1)
-  %1 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([13 x i8], [13 x i8]* @fuck_string, i32 0, i32 0))
+  %1 = load i32, i32* @fuck.1
+  %2 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([7 x i8], [7 x i8]* @0, i32 0, i32 0))
   ret i32 0
 }
