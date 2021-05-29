@@ -102,6 +102,13 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
     };
 
+    class StmtSeqNode: public BasicNode{
+      public:
+        std::vector<std::unique_ptr<BasicNode> > stmts;
+        StmtSeqNode(){};
+        CodeGenResult* code_gen() override;
+    };
+
     class CodeGenResult{
       public:
         AllocaInst* alloc;
