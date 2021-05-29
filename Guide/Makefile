@@ -15,3 +15,8 @@ run3 : main.cpp
 	./main > main.ll
 	clang++ main.ll -o main.out
 	./main.out
+
+.PHONY: clean
+clean:
+	-rm main
+	-rm main.out
