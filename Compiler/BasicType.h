@@ -4,21 +4,21 @@
 #include "BasicLLVM.h"
 using namespace llvm;
 
-Type* ShortIntType; // 1 byte
-Type* IntType;  // 2 byte *
-Type* LongIntType;  // 4 byte
-Type* Int64Type;    // 8 byte
+extern Type* ShortIntType; // 1 byte
+extern Type* IntType;  // 2 byte *
+extern Type* LongIntType;  // 4 byte
+extern Type* Int64Type;    // 8 byte
 
-Type* ByteType; // 1 byte Unsigned
-Type* WordType; // 2 byte Unsigned
-Type* DwordType;// 4 byte Unsigned
-Type* QwordType;// 8 byte Unsigned
+extern Type* ByteType; // 1 byte Unsigned
+extern Type* WordType; // 2 byte Unsigned
+extern Type* DwordType;// 4 byte Unsigned
+extern Type* QwordType;// 8 byte Unsigned
 
-Type* RealType; // 4 byte float *
-Type* DoubleType;   // 8 byte double
-Type* ExtendType;   // 10 byte ...
+extern Type* RealType; // 4 byte float *
+extern Type* DoubleType;   // 8 byte double
+extern Type* ExtendType;   // 10 byte ...
 
-Type* CharType; // 1 byte *
-Type* BoolType; // 1 bit *
+extern Type* CharType; // 1 byte *
+extern Type* BoolType; // 1 bit *
 
 #endif

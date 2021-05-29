@@ -158,13 +158,13 @@ int main() {
             // auto modify = builder.CreateGEP(globalStr, {builder.getInt32(0), builder.getInt32(1)});
             // builder.CreateStore(ConstantInt::get(Type::getInt8Ty(the_context), 48), modify);
             
-            // auto fuck_pos = builder.CreateGEP(globalVar, builder.getInt32(0));
-            auto fuck_else = builder.CreateLoad(Type::getInt32Ty(the_context), globalVar);
+            auto fuck_pos = builder.CreateGEP(globalVar, builder.getInt32(0));
+            auto fuck_else = builder.CreateLoad(Type::getInt32Ty(the_context), fuck_pos);
 
             std::vector <Value*> put_argss;
-            // put_argss.push_back(res);
-            // put_argss.push_back(fuck_else);
-            put_argss.push_back(format_pos);
+            put_argss.push_back(res);
+            put_argss.push_back(fuck_else);
+            // put_argss.push_back(format_pos);
 
             ArrayRef  <Value*> printf_Ref(put_argss);
             builder.CreateCall(TheFunction, printf_Ref);

@@ -7,12 +7,36 @@
 using namespace llvm;
 namespace ASTNodes{
 
+    class CodeGenResult{
+      public:
+        Value* mem;
+        Type* type;
+        Value* value;
+
+        CodeGenResult(Value* _mem, Type* _type, Value* _value){
+            mem = _mem;
+            type = _type;
+            value = _value;
+        }
+        ~CodeGenResult();
+    };
+
     class BasicNode{
       public:
         virtual ~BasicNode() = default;
         virtual CodeGenResult* code_gen() = 0;
     };
 
+    class VarAccessNode: public BasicNode{
+      public:
+        bool is_global;
+        std::string var_name;
+        int idx = 0;
+        std::shared_ptr<VarAccessNode> nested_var = nullptr;
+        VarAccessNode(){};
+        CodeGenResult* code_gen() override;
+    };
+    
     class ConstantNode: public BasicNode{
       public:
         Type* constant_type;
@@ -24,7 +48,11 @@ namespace ASTNodes{
     class VariableDefineNode: public BasicNode{
       public:
         Type* variable_type;
-        std::string variable_name;
+        // std::string variable_name;
+        bool is_global;
+        bool is_array;
+        int array_length;
+        std::string name;
         VariableDefineNode(){};
         CodeGenResult* code_gen() override;
     };
@@ -32,7 +60,7 @@ namespace ASTNodes{
 	class BinaryExprNode: public BasicNode{
       public:
 		BinaryOper expr_op;
-        std::unique_ptr<BasicNode> LHS, RHS;
+        std::shared_ptr<BasicNode> LHS, RHS;
         BinaryExprNode(){};
         CodeGenResult* code_gen() override;
 	};
@@ -40,7 +68,7 @@ namespace ASTNodes{
     class CallNode: public BasicNode{
       public:
         std::string callee_name;
-        std::vector<std::unique_ptr<BasicNode> > callee_args;
+        std::vector<std::shared_ptr<BasicNode> > callee_args;
         CallNode(){};
         CodeGenResult* code_gen() override;
     };
@@ -48,23 +76,26 @@ namespace ASTNodes{
     class FunDeclareNode: public BasicNode{
       public:
         std::string function_name;
-        std::vector<std::string> function_args;
+        Type* ret_type;
+        std::vector<Type*> function_arg_types;
+        std::vector<std::string> function_arg_names; // necessary
         FunDeclareNode(){};
         CodeGenResult* code_gen() override;
     };
 
     class FunctionNode: public BasicNode{
       public:
-        std::unique_ptr<FunDeclareNode> func_declare;
-        std::unique_ptr<BasicNode> func_body;
+        std::shared_ptr<FunDeclareNode> func_declare;
+        std::shared_ptr<BasicNode> func_body;
         FunctionNode(){};
+        std::string get_name();
         CodeGenResult* code_gen() override;
     };
 
     class AssignNode: public BasicNode{
       public:
-        std::unique_ptr<VarAccessNode> LHS;
-        std::unique_ptr<BasicNode> RHS;
+        std::shared_ptr<VarAccessNode> LHS;
+        std::shared_ptr<BasicNode> RHS;
         AssignNode(){};
         CodeGenResult* code_gen() override;
     };
@@ -75,14 +106,6 @@ namespace ASTNodes{
         std::vector<llvm::Type*> struct_member_type;
         std::vector<std::string> struct_member_name;
         StructDefineNode(){};
-        CodeGenResult* code_gen() override;
-    };
-
-    class VarAccessNode: public BasicNode{
-      public:
-        std::string var_name;
-        std::unique_ptr<VarAccessNode> nested_var = nullptr;
-        VarAccessNode(){};
         CodeGenResult* code_gen() override;
     };
 
@@ -104,30 +127,25 @@ namespace ASTNodes{
 
     class StmtSeqNode: public BasicNode{
       public:
-        std::vector<std::unique_ptr<BasicNode> > stmts;
+        std::vector<std::shared_ptr<BasicNode> > stmts;
         StmtSeqNode(){};
         CodeGenResult* code_gen() override;
     };
 
     class ProgramNode: public BasicNode{
       public:
+        std::vector<std::shared_ptr<BasicNode> > parts;
         ProgramNode(){};
         CodeGenResult* code_gen() override;
     };
 
-    class CodeGenResult{
+    class ReturnNode: public BasicNode{
       public:
-        Value* mem;
-        Type* type;
-        Value* value;
-
-        CodeGenResult(AllocaInst* _mem, Type* _type, Value* _value){
-            mem = _mem;
-            type = _type;
-            value = _value;
-        }
-        ~CodeGenResult();
+        std::shared_ptr<BasicNode> val;
+        ReturnNode(){};
+        CodeGenResult* code_gen() override;
     };
+
 
 }
 
