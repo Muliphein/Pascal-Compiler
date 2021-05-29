@@ -87,10 +87,11 @@ int main() {
 
         // Temper Value
         AllocaInst* var = builder.CreateAlloca(Type::getInt32Ty(the_context), nullptr, "t");
-        builder.CreateStore(ConstantInt::get(Type::getInt32Ty(the_context), 5), var);
-        auto temp = builder.CreateLoad(Type::getInt32Ty(the_context), var);
+        auto var_pos = builder.CreateGEP(var, builder.getInt32(0));
+        builder.CreateStore(ConstantInt::get(Type::getInt32Ty(the_context), 5), var_pos);
+        auto temp = builder.CreateLoad(Type::getInt32Ty(the_context), var_pos);
         auto temp1 = builder.CreateLShr(temp, 2);
-        builder.CreateStore(temp1, var);
+        builder.CreateStore(temp1, var_pos);
 
         BasicBlock* if_then = BasicBlock::Create(the_context, "if_then", TheFunction);
         BasicBlock* if_else = BasicBlock::Create(the_context, "if_else", TheFunction);

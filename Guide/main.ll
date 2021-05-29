@@ -16,18 +16,19 @@ define i32 @max(i32 %a, i32 %b) {
 max_entry:
   %0 = icmp sgt i32 %a, %b
   %t = alloca i32
-  store i32 5, i32* %t
-  %1 = load i32, i32* %t
-  %2 = lshr i32 %1, 2
-  store i32 %2, i32* %t
+  %1 = getelementptr i32, i32* %t, i32 0
+  store i32 5, i32* %1
+  %2 = load i32, i32* %1
+  %3 = lshr i32 %2, 2
+  store i32 %3, i32* %1
   br i1 %0, label %if_then, label %if_else
 
 if_then:                                          ; preds = %max_entry
   ret i32 %a
 
 if_else:                                          ; preds = %max_entry
-  %3 = load i32, i32* %t
-  ret i32 %1
+  %4 = load i32, i32* %t
+  ret i32 %2
 }
 
 define i32 @main() {
