@@ -3,6 +3,7 @@
 
 #include "BinaryOp.h"
 #include "BasicLLVM.h"
+#include <iostream>
 
 
 using namespace llvm;
@@ -10,9 +11,9 @@ extern IRBuilder<> builder;
 namespace ASTNodes{
 
     class CodeGenResult{
-      private:
+    private:
         Value* value;
-      public:
+    public:
         Value* mem;
         Type* type;
 
@@ -29,7 +30,9 @@ namespace ASTNodes{
                     if (type == nullptr){
                         throw("Error : No type for Variable");
                     } else {
+                        // std::cerr<<"Before Load"<<std::endl;
                         value = builder.CreateLoad(type, mem);
+                        // std::cerr<<"End Load"<<std::endl;
                     }
                 }
             }
@@ -39,14 +42,15 @@ namespace ASTNodes{
     };
 
     class BasicNode{
-      public:
+    public:
         virtual ~BasicNode() = default;
         virtual CodeGenResult* code_gen() = 0;
     };
 
     class VarAccessNode: public BasicNode{
-      public:
-        bool is_global;
+    public:
+        static std::vector<Value*> idx_set;
+        static int depth;
         std::string var_name;
         int idx = 0;
         std::shared_ptr<VarAccessNode> nested_var = nullptr;
@@ -55,7 +59,7 @@ namespace ASTNodes{
     };
     
     class ConstantNode: public BasicNode{
-      public:
+    public:
         Type* constant_type;
         Value* constant_value;
         ConstantNode(){};
@@ -63,10 +67,8 @@ namespace ASTNodes{
     };
 
     class VariableDefineNode: public BasicNode{
-      public:
-        Type* variable_type;
-        // std::string variable_name;
-        bool is_global;
+    public:
+        std::string type;
         bool is_array;
         int array_length;
         std::string name;
@@ -75,7 +77,7 @@ namespace ASTNodes{
     };
 
 	class BinaryExprNode: public BasicNode{
-      public:
+    public:
 		BinaryOper expr_op;
         std::shared_ptr<BasicNode> LHS, RHS;
         BinaryExprNode(){};
@@ -83,7 +85,7 @@ namespace ASTNodes{
 	};
 
     class CallNode: public BasicNode{
-      public:
+    public:
         std::string callee_name;
         std::vector<std::shared_ptr<BasicNode> > callee_args;
         CallNode(){};
@@ -91,7 +93,7 @@ namespace ASTNodes{
     };
 
     class FunDeclareNode: public BasicNode{
-      public:
+    public:
         std::string function_name;
         Type* ret_type;
         std::vector<Type*> function_arg_types;
@@ -101,7 +103,7 @@ namespace ASTNodes{
     };
 
     class FunctionNode: public BasicNode{
-      public:
+    public:
         std::shared_ptr<FunDeclareNode> func_declare;
         std::shared_ptr<BasicNode> func_body;
         FunctionNode(){};
@@ -110,7 +112,7 @@ namespace ASTNodes{
     };
 
     class AssignNode: public BasicNode{
-      public:
+    public:
         std::shared_ptr<VarAccessNode> LHS;
         std::shared_ptr<BasicNode> RHS;
         AssignNode(){};
@@ -118,7 +120,7 @@ namespace ASTNodes{
     };
 
     class StructDefineNode: public BasicNode{
-      public:
+    public:
         std::string struct_name;
         std::vector<llvm::Type*> struct_member_type;
         std::vector<std::string> struct_member_name;
@@ -127,7 +129,7 @@ namespace ASTNodes{
     };
 
     class SysWriteNode: public BasicNode{
-      public:
+    public:
         bool has_newline;
         std::vector<std::shared_ptr<BasicNode> > args;
         SysWriteNode(){};
@@ -135,21 +137,21 @@ namespace ASTNodes{
     };
 
     class SysReadNode: public BasicNode{
-      public:
+    public:
         bool has_newline;
         std::vector<std::shared_ptr<VarAccessNode> > args;
         SysReadNode(){};
         CodeGenResult* code_gen() override;
     };
 
-    class StmtSeqNode: public BasicNode{
-      public:
+    class StmtSeqNode: public BasicNode{ // will add to Table Stages
+    public:
         std::vector<std::shared_ptr<BasicNode> > stmts;
         StmtSeqNode(){};
         CodeGenResult* code_gen() override;
     };
 
-    class ProgramNode: public BasicNode{
+    class ProgramNode: public BasicNode{ // won't add to Table Stages
       public:
         std::vector<std::shared_ptr<BasicNode> > parts;
         ProgramNode(){};
@@ -163,6 +165,17 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
     };
 
+    class RecordTypeDefineNode: public BasicNode{
+      public:
+        std::string record_name; // rec
+        std::vector<std::string> member_var_name; // a
+        std::vector<std::string> member_type_name; // integer
+        std::vector<bool> mem_is_array; //false
+        std::vector<int> mem_arrag_length; //0
+        
+        RecordTypeDefineNode(){};
+        CodeGenResult* code_gen() override;
+    };
 
 }
 

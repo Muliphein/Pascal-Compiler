@@ -38,13 +38,17 @@ int main() {
         std::vector <Type*> elements;
         elements.push_back(Type::getInt32Ty(the_context));
         elements.push_back(Type::getInt32Ty(the_context));
-        elements.push_back(Type::getDoubleTy(the_context));
+        elements.push_back(ArrayType::get(Type::getDoubleTy(the_context), 2));
         struct_type->setBody(elements);
 
+        StructType* new_struct_type = StructType::create(the_context, "MyNewStruct");
+        std::vector <Type*> elements2;
+        elements2.push_back(ArrayType::get(struct_type, 2));
+        new_struct_type->setBody(elements2);
 
         // to see the influence
         std::vector<Type*> function_args;
-        PointerType *p_struct = PointerType::get(struct_type, 0);
+        PointerType *p_struct = PointerType::get(new_struct_type, 0);
         function_args.push_back(p_struct);
         FunctionType* fuck_type = FunctionType::get(Type::getInt32Ty(the_context), function_args, false);
         Function* fuck_fun = Function::Create(fuck_type, Function::ExternalLinkage, "fuck", the_module.get());
@@ -147,7 +151,8 @@ int main() {
             Function* TheFunction =the_module->getFunction("printf");
             
             auto format = builder.CreateGlobalString("hello!");
-            auto format_pos = builder.CreateGEP(format, {builder.getInt32(0), builder.getInt32(0)});
+            auto format_pos = builder.CreateGEP(format, builder.getInt32(0));
+            auto format_pos_prime = builder.CreateGEP(format_pos, {builder.getInt32(0), builder.getInt32(0)});
 
             //Important
             // global variable is a pointer
@@ -162,9 +167,9 @@ int main() {
             auto fuck_else = builder.CreateLoad(Type::getInt32Ty(the_context), fuck_pos);
 
             std::vector <Value*> put_argss;
-            put_argss.push_back(res);
-            put_argss.push_back(fuck_else);
-            // put_argss.push_back(format_pos);
+            // put_argss.push_back(res);
+            // put_argss.push_back(fuck_else);
+            put_argss.push_back(format_pos_prime);
 
             ArrayRef  <Value*> printf_Ref(put_argss);
             builder.CreateCall(TheFunction, printf_Ref);

@@ -38,3 +38,9 @@ ASTNodes::CodeGenResult* ASTNodes::StmtSeqNode::code_gen(){
         arg->code_gen();
     return nullptr;
 }
+
+ASTNodes::CodeGenResult* ASTNodes::ProgramNode::code_gen(){
+    for (auto arg: this->parts)
+        arg->code_gen();
+    return nullptr;
+}

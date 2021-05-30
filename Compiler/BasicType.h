@@ -16,7 +16,7 @@ extern Type* QwordType;// 8 byte Unsigned
 
 extern Type* RealType; // 4 byte float *
 extern Type* DoubleType;   // 8 byte double
-extern Type* ExtendType;   // 10 byte ...
+// extern Type* ExtendType;   // 10 byte ...
 
 extern Type* CharType; // 1 byte *
 extern Type* BoolType; // 1 bit *

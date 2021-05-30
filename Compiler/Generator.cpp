@@ -6,9 +6,17 @@ LLVMContext context;
 IRBuilder<> builder(context);
 std::shared_ptr<Module> module;
 
-std::map<std::string, GlobalVariable*> global_table;
-std::map<std::string, Type*> global_table_type;
-std::map<std::string, bool> global_table_array;
+int stage = 0;
+std::map<std::string, Type*> type_map;// TypeName -> Type Pointer
+std::map<Type*, Constant*> zero_initial;// Type -> zeroinitial
+
+std::map<std::string, Value*> table_mem;// VarName -> Memory
+std::map<std::string, Type*> table_type;// VarName -> Type
+std::map<std::string, bool> table_array;// VarName -> Array
+
+std::map<Type*, std::vector<Type*> > record_type_list;// StructType -> Member_Type_List
+std::map<Type*, std::vector<std::string> > record_member_name_list;// StructType -> Member_Name_List
+std::map<Type*, std::vector<bool> > record_member_array;// StructType -> Member_Name_List
 
 Type* ShortIntType; // 1 byte
 Type* IntType;  // 2 byte *
@@ -22,7 +30,7 @@ Type* QwordType;// 8 byte Unsigned
 
 Type* RealType; // 4 byte float *
 Type* DoubleType;   // 8 byte double
-Type* ExtendType;   // 10 byte ...
+// Type* ExtendType;   // 10 byte ...
 
 Type* CharType; // 1 byte *
 Type* BoolType; // 1 bit *
@@ -45,6 +53,16 @@ void build_basic_type()
 
     CharType = Type::getInt8Ty(context);
     BoolType = Type::getInt1Ty(context);
+
+    type_map["char"] = ByteType;
+    zero_initial[ByteType] = ConstantInt::get(ByteType, 0);
+    type_map["integer"] = IntType;
+    zero_initial[IntType] = ConstantInt::get(IntType, 0);
+    type_map["real"] = RealType;
+    zero_initial[RealType] = ConstantFP::get(RealType, 0);
+    type_map["bool"] = BoolType;
+    zero_initial[BoolType] = ConstantInt::get(BoolType, 0);
+
 }
 
 void syscal_declare()
