@@ -10,7 +10,7 @@ ASTNodes::CodeGenResult* ASTNodes::SysReadNode::code_gen(){
     std::vector<CodeGenResult*> code_gen_args;
     std::vector<Value*> scanf_args;
     scanf_args.push_back(nullptr);
-
+    code_gen_args.push_back(nullptr);
     for (auto arg: this->args){
         ASTNodes::CodeGenResult* temp=arg->code_gen();
         code_gen_args.push_back(temp);
@@ -33,7 +33,7 @@ ASTNodes::CodeGenResult* ASTNodes::SysReadNode::code_gen(){
         }
     }
     if (this->has_newline){
-        _string += "\n";
+        _string += "%*[^\n]";
     }
     GlobalVariable* format_string = builder.CreateGlobalString(_string);
     Value* format= builder.CreateGEP(format_string, {builder.getInt64(0), builder.getInt64(0)});
@@ -42,7 +42,7 @@ ASTNodes::CodeGenResult* ASTNodes::SysReadNode::code_gen(){
     ArrayRef <Value*> scanf_ref(scanf_args);
     auto scanf_res = builder.CreateCall(scanf_function, scanf_ref);
 
-    for (int i=0; i<code_gen_args.size(); ++i){ // Get the Result to Bool Type
+    for (int i=1; i<code_gen_args.size(); ++i){ // Get the Result to Bool Type
         if (code_gen_args[i]->type == BoolType){
             Value* read_int = builder.CreateLoad(Int64Type, scanf_args[i]);
             Value* cmp_res = builder.CreateICmpNE(read_int, ConstantInt::get(Int64Type, 0));
@@ -64,16 +64,16 @@ ASTNodes::CodeGenResult* ASTNodes::SysWriteNode::code_gen(){
         ASTNodes::CodeGenResult* temp=arg->code_gen();
         if (temp->type == IntType){
             _string += "%hd";
-            printf_args.push_back(temp->value);
+            printf_args.push_back(temp->get_value());
         } else if (temp->type == CharType){
             _string += "%c";
-            printf_args.push_back(temp->value);
+            printf_args.push_back(temp->get_value());
         } else if (temp->type == RealType){
             _string += "%f";
-            printf_args.push_back(temp->value);
+            printf_args.push_back(temp->get_value());
         } else if (temp->type == BoolType){ // Special Zero Extented for BoolType
             _string += "%d";
-            Value * res = builder.CreateZExt(temp->value, Int64Type);
+            Value * res = builder.CreateZExt(temp->get_value(), Int64Type);
             printf_args.push_back(res);
         } else {
             throw "Wrong Type In Read(ln)";

@@ -28,7 +28,7 @@ ASTNodes::CodeGenResult* ASTNodes::VariableDefineNode::code_gen(){
             } else if (this->variable_type == RealType){
                 zero = ConstantFP::get(RealType, 0);
             } else if (this->variable_type == BoolType){
-                zero = ConstantFP::get(BoolType, 0);
+                zero = ConstantInt::get(BoolType, 0);
             } else {
                 throw("Error : Unspport Type\n");
             }
@@ -55,7 +55,7 @@ ASTNodes::CodeGenResult* ASTNodes::VariableDefineNode::code_gen(){
             } else if (this->variable_type == RealType){
                 zero = ConstantFP::get(RealType, 0);
             } else if (this->variable_type == BoolType){
-                zero = ConstantFP::get(BoolType, 0);
+                zero = ConstantInt::get(BoolType, 0);
             } else {
                 throw("Error : Unspport Type\n");
             }
@@ -83,11 +83,12 @@ ASTNodes::CodeGenResult* ASTNodes::VarAccessNode::code_gen(){
         auto _type = global_table_type[this->var_name];
         Value* _mem;
         if (global_table_array[this->var_name]){ // array Var
-            _mem = builder.CreateGEP(pointer, {builder.getInt32(0), builder.getInt64(this->idx)});
+            _mem = builder.CreateGEP(pointer, {builder.getInt64(0), builder.getInt64(this->idx)});
         } else { // Simple Var;
-            _mem = builder.CreateGEP(pointer, builder.getInt32(0));
+            _mem = builder.CreateGEP(pointer, builder.getInt64(0));
         }
-        auto _value = builder.CreateLoad(_type, pointer);
+        // auto _value = builder.CreateLoad(_type, pointer);
+        Value* _value=nullptr;
         return new CodeGenResult(_mem, _type, _value);
         
     } else {

@@ -34,6 +34,6 @@ ASTNodes::CodeGenResult* ASTNodes::FunctionNode::code_gen(){
 }
 
 ASTNodes::CodeGenResult* ASTNodes::ReturnNode::code_gen(){
-    builder.CreateRet(this->val->code_gen()->value);
+    builder.CreateRet(this->val->code_gen()->get_value());
     return nullptr;
 }

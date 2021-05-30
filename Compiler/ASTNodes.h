@@ -4,19 +4,36 @@
 #include "BinaryOp.h"
 #include "BasicLLVM.h"
 
+
 using namespace llvm;
+extern IRBuilder<> builder;
 namespace ASTNodes{
 
     class CodeGenResult{
+      private:
+        Value* value;
       public:
         Value* mem;
         Type* type;
-        Value* value;
 
         CodeGenResult(Value* _mem, Type* _type, Value* _value){
             mem = _mem;
             type = _type;
             value = _value;
+        }
+        Value* get_value(){
+            if (value == nullptr){
+                if (mem == nullptr){
+                    throw("Error : No Value And Mem for Variable, It's Unpossible\n");
+                } else {
+                    if (type == nullptr){
+                        throw("Error : No type for Variable");
+                    } else {
+                        value = builder.CreateLoad(type, mem);
+                    }
+                }
+            }
+            return value;
         }
         ~CodeGenResult();
     };
