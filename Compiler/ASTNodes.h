@@ -30,9 +30,7 @@ namespace ASTNodes{
                     if (type == nullptr){
                         throw("Error : No type for Variable");
                     } else {
-                        // std::cerr<<"Before Load"<<std::endl;
                         value = builder.CreateLoad(type, mem);
-                        // std::cerr<<"End Load"<<std::endl;
                     }
                 }
             }
@@ -49,15 +47,22 @@ namespace ASTNodes{
 
     class VarAccessNode: public BasicNode{
     public:
-        static std::vector<Value*> idx_set;
-        static int depth;
         std::string var_name;
-        int idx = 0;
+        std::shared_ptr<BasicNode> idx;
         std::shared_ptr<VarAccessNode> nested_var = nullptr;
         VarAccessNode(){};
         CodeGenResult* code_gen() override;
     };
     
+    class VarBaseNode: public BasicNode{
+    public:
+        std::string var_name;
+        std::shared_ptr<BasicNode> idx;
+        std::shared_ptr<VarAccessNode> nested_var = nullptr;
+        VarBaseNode(){};
+        CodeGenResult* code_gen() override;
+    };
+
     class ConstantNode: public BasicNode{
     public:
         Type* constant_type;
@@ -102,10 +107,17 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
     };
 
+    class FunctionBodyNode: public BasicNode{ // Will Add New Block And New Table And New Variable In Parameters
+      public:
+        std::vector<std::shared_ptr<BasicNode> > stmts;
+        FunctionBodyNode(){};
+        CodeGenResult* code_gen() override;
+    };
+
     class FunctionNode: public BasicNode{
     public:
         std::shared_ptr<FunDeclareNode> func_declare;
-        std::shared_ptr<BasicNode> func_body;
+        std::shared_ptr<FunctionBodyNode> func_body;
         FunctionNode(){};
         std::string get_name();
         CodeGenResult* code_gen() override;
@@ -113,7 +125,7 @@ namespace ASTNodes{
 
     class AssignNode: public BasicNode{
     public:
-        std::shared_ptr<VarAccessNode> LHS;
+        std::shared_ptr<VarBaseNode> LHS;
         std::shared_ptr<BasicNode> RHS;
         AssignNode(){};
         CodeGenResult* code_gen() override;
@@ -139,7 +151,7 @@ namespace ASTNodes{
     class SysReadNode: public BasicNode{
     public:
         bool has_newline;
-        std::vector<std::shared_ptr<VarAccessNode> > args;
+        std::vector<std::shared_ptr<VarBaseNode> > args;
         SysReadNode(){};
         CodeGenResult* code_gen() override;
     };

@@ -7,5 +7,6 @@ extern IRBuilder<> builder;
 extern std::shared_ptr<Module> module;
 
 ASTNodes::CodeGenResult* ASTNodes::ConstantNode::code_gen(){
+    // printf("In Constant\n");
     return new CodeGenResult(nullptr, this->constant_type, this->constant_value);
 }

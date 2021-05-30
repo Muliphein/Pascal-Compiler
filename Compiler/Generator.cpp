@@ -5,6 +5,7 @@ using namespace llvm;
 LLVMContext context;
 IRBuilder<> builder(context);
 std::shared_ptr<Module> module;
+std::vector<Value*> idx_set;
 
 int stage = 0;
 std::map<std::string, Type*> type_map;// TypeName -> Type Pointer

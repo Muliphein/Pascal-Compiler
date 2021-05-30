@@ -91,11 +91,9 @@ ASTNodes::CodeGenResult* ASTNodes::VariableDefineNode::code_gen(){
     return nullptr;
 }
 
-std::vector<Value*> ASTNodes::VarAccessNode::idx_set;
-int ASTNodes::VarAccessNode::depth=0;
+extern std::vector<Value*> idx_set;
 
 ASTNodes::CodeGenResult* ASTNodes::VarAccessNode::code_gen(){
-    depth++;
     if (this->nested_var == nullptr){
         if (table_mem.count(this->var_name)==0){
             throw("Error : Undefined of "+this->var_name);
@@ -104,16 +102,13 @@ ASTNodes::CodeGenResult* ASTNodes::VarAccessNode::code_gen(){
         auto _type = table_type[this->var_name];
         Value* _mem = pointer;
         if (table_array[this->var_name]){ // array Var
+            // printf("Gen IDX Low\n");
+            Value* array_idx = this->idx->code_gen()->get_value();
+            // printf("End Low\n");
             idx_set.push_back(builder.getInt64(0));
-            idx_set.push_back(builder.getInt64(this->idx));
+            idx_set.push_back(array_idx);
         } else { // Simple Var;
             idx_set.push_back(builder.getInt64(0));
-        }
-        depth--;
-        if (depth == 0){
-            ArrayRef<Value*> idx_ref(idx_set);
-            idx_set.clear();
-            _mem = builder.CreateGEP(_mem, idx_ref);
         }
         return new CodeGenResult(_mem, _type, nullptr);
     } else {
@@ -132,17 +127,81 @@ ASTNodes::CodeGenResult* ASTNodes::VarAccessNode::code_gen(){
             }
         }
         if (above_array_list[struct_position]){ //array Var
+            // printf("Gen IDX High\n");
+            Value* array_idx = this->idx->code_gen()->get_value();
+            // printf("End High\n");
             idx_set.push_back(builder.getInt32(struct_position));
-            idx_set.push_back(builder.getInt64(this->idx));
+            idx_set.push_back(array_idx);
         } else { // Simple Var
             idx_set.push_back(builder.getInt32(struct_position));
         }
-        depth--;
-        if (depth == 0){
-            ArrayRef<Value*> idx_ref(idx_set);
-            idx_set.clear();
-            _mem = builder.CreateGEP(_mem, idx_ref);
+        return new CodeGenResult(_mem, _type, nullptr);
+    }
+}
+
+ASTNodes::CodeGenResult* ASTNodes::VarBaseNode::code_gen(){
+    int now_size = idx_set.size();
+    if (this->nested_var == nullptr){
+        if (table_mem.count(this->var_name)==0){
+            throw("Error : Undefined of "+this->var_name);
         }
+        Value* pointer = table_mem[this->var_name];
+        auto _type = table_type[this->var_name];
+        Value* _mem = pointer;
+        if (table_array[this->var_name]){ // array Var
+            // printf("GEN IDX Low\n");
+            Value* array_idx = this->idx->code_gen()->get_value();
+            // printf("End Low\n");
+            idx_set.push_back(builder.getInt64(0));
+            idx_set.push_back(array_idx);
+        } else { // Simple Var;
+            idx_set.push_back(builder.getInt64(0));
+        }
+        std::vector<Value*> now_set;
+        now_set.clear();
+        for (int i=now_size; i<idx_set.size(); ++i){
+            now_set.push_back(idx_set[i]);
+        }
+        while(idx_set.size()>now_size)
+            idx_set.pop_back();
+        ArrayRef<Value*> idx_ref(now_set);
+        _mem = builder.CreateGEP(_mem, idx_ref);
+        return new CodeGenResult(_mem, _type, nullptr);
+
+    } else {
+        CodeGenResult* temp = this->nested_var->code_gen();
+        Value* _mem = temp->mem;
+        Type* _type = nullptr;
+        Type* above_type = temp->type;
+        std::vector<Type*> above_type_list = record_type_list[above_type];
+        std::vector<std::string> above_name_list = record_member_name_list[above_type];
+        std::vector<bool> above_array_list = record_member_array[above_type];
+        int struct_position = -1;
+        for (int i=0; i<above_type_list.size(); ++i){
+            if (above_name_list[i] == this->var_name){
+                struct_position = i;
+                _type = above_type_list[i];
+            }
+        }
+        if (above_array_list[struct_position]){ //array Var
+            // printf("GEN IDX High\n");
+            Value* array_idx = this->idx->code_gen()->get_value();
+            // printf("End High\n");
+            idx_set.push_back(builder.getInt32(struct_position));
+            idx_set.push_back(array_idx);
+        } else { // Simple Var
+            idx_set.push_back(builder.getInt32(struct_position));
+        }
+        
+        std::vector<Value*> now_set;
+        now_set.clear();
+        for (int i=now_size; i<idx_set.size(); ++i){
+            now_set.push_back(idx_set[i]);
+        }
+        while(idx_set.size()>now_size)
+            idx_set.pop_back();
+        ArrayRef<Value*> idx_ref(now_set);
+        _mem = builder.CreateGEP(_mem, idx_ref);
         return new CodeGenResult(_mem, _type, nullptr);
     }
 }
