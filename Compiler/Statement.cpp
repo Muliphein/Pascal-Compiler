@@ -6,6 +6,13 @@ extern LLVMContext context;
 extern IRBuilder<> builder;
 extern std::shared_ptr<Module> module;
 
+extern int stage;
+
+extern std::map<std::string, Value*> table_mem[MAX_NESTED];// VarName -> Memory
+extern std::map<std::string, Type*> table_type[MAX_NESTED];// VarName -> Type
+extern std::map<std::string, bool> table_array[MAX_NESTED];// VarName -> Array
+
+
 ASTNodes::CodeGenResult* ASTNodes::AssignNode::code_gen(){
     CodeGenResult* rhs = this->RHS->code_gen();
     CodeGenResult* lhs = this->LHS->code_gen();
@@ -34,8 +41,13 @@ ASTNodes::CodeGenResult* ASTNodes::BinaryExprNode::code_gen(){
 }
 
 ASTNodes::CodeGenResult* ASTNodes::StmtSeqNode::code_gen(){
+    stage++;
+    table_mem[stage].clear();
+    table_type[stage].clear();
+    table_array[stage].clear();
     for (auto arg: this->stmts)
         arg->code_gen();
+    stage--;
     return nullptr;
 }
 

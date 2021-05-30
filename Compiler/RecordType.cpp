@@ -11,9 +11,9 @@ extern int stage;
 extern std::map<std::string, Type*> type_map;// TypeName -> Type Pointer
 extern std::map<Type*, Constant*> zero_initial;// Type -> zeroinitial
 
-extern std::map<std::string, Value*> table_mem;// VarName -> Memory
-extern std::map<std::string, Type*> table_type;// VarName -> Type
-extern std::map<std::string, bool> table_array;// VarName -> Array
+extern std::map<std::string, Value*> table_mem[MAX_NESTED];// VarName -> Memory
+extern std::map<std::string, Type*> table_type[MAX_NESTED];// VarName -> Type
+extern std::map<std::string, bool> table_array[MAX_NESTED];// VarName -> Array
 
 extern std::map<Type*, std::vector<Type*> > record_type_list;// StructType -> Member_Type_List
 extern std::map<Type*, std::vector<std::string> > record_member_name_list;// StructType -> Member_Name_List

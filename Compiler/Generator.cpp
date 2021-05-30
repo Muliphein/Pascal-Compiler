@@ -10,10 +10,11 @@ std::vector<Value*> idx_set;
 int stage = 0;
 std::map<std::string, Type*> type_map;// TypeName -> Type Pointer
 std::map<Type*, Constant*> zero_initial;// Type -> zeroinitial
+std::string now_function;
 
-std::map<std::string, Value*> table_mem;// VarName -> Memory
-std::map<std::string, Type*> table_type;// VarName -> Type
-std::map<std::string, bool> table_array;// VarName -> Array
+std::map<std::string, Value*> table_mem[MAX_NESTED];// VarName -> Memory
+std::map<std::string, Type*> table_type[MAX_NESTED];// VarName -> Type
+std::map<std::string, bool> table_array[MAX_NESTED];// VarName -> Array
 
 std::map<Type*, std::vector<Type*> > record_type_list;// StructType -> Member_Type_List
 std::map<Type*, std::vector<std::string> > record_member_name_list;// StructType -> Member_Name_List

@@ -5,6 +5,7 @@
 #include "BasicLLVM.h"
 #include <iostream>
 
+#define MAX_NESTED 50
 
 using namespace llvm;
 extern IRBuilder<> builder;

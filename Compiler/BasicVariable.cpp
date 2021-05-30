@@ -10,9 +10,9 @@ extern int stage;
 extern std::map<std::string, Type*> type_map;// TypeName -> Type Pointer
 extern std::map<Type*, Constant*> zero_initial;// Type -> zeroinitial
 
-extern std::map<std::string, Value*> table_mem;// VarName -> Memory
-extern std::map<std::string, Type*> table_type;// VarName -> Type
-extern std::map<std::string, bool> table_array;// VarName -> Array
+extern std::map<std::string, Value*> table_mem[MAX_NESTED];// VarName -> Memory
+extern std::map<std::string, Type*> table_type[MAX_NESTED];// VarName -> Type
+extern std::map<std::string, bool> table_array[MAX_NESTED];// VarName -> Array
 
 extern std::map<Type*, std::vector<Type*> > record_type_list;// StructType -> Member_Type_List
 extern std::map<Type*, std::vector<std::string> > record_member_name_list;// StructType -> Member_Name_List
@@ -50,13 +50,12 @@ bool is_basic_type(Type* _type){
 }
 
 ASTNodes::CodeGenResult* ASTNodes::VariableDefineNode::code_gen(){
-    // printf("Start To Variable Define\n");
     if (stage == 0){ // Do on the Global Table
         if (type_map.count(this->type)==0){
             throw("Error : Can't Find the Variable"+this->type+"\n");
         }
         Type* variable_type = type_map[this->type];
-        if (table_mem.count(this->name)>0){
+        if (table_mem[stage].count(this->name)>0){
             throw("Error : Redefine of "+this->name+"\n");
         }
         if (this->is_array){
@@ -70,24 +69,40 @@ ASTNodes::CodeGenResult* ASTNodes::VariableDefineNode::code_gen(){
                 *(module.get()), array_type, false,
                 GlobalVariable::ExternalLinkage, init, this->name
             );
-            table_mem[this->name] = global_variable;
-            table_type[this->name] = variable_type;
-            table_array[this->name] = true;
+            table_mem[stage][this->name] = global_variable;
+            table_type[stage][this->name] = variable_type;
+            table_array[stage][this->name] = true;
         } else {
-            // printf("Ready to define in global!\n");
             GlobalVariable* global_variable = new GlobalVariable(
                 *(module.get()), variable_type, false,
                 GlobalVariable::ExternalLinkage, zero_initial[variable_type], this->name
             );
-            // printf("Builder Over\n");
-            table_mem[this->name] = global_variable;
-            table_type[this->name] = variable_type;
-            table_array[this->name] = false;
+            table_mem[stage][this->name] = global_variable;
+            table_type[stage][this->name] = variable_type;
+            table_array[stage][this->name] = false;
         }
     } else {
-        throw("Error : Unspport Local Variable");
+        if (type_map.count(this->type)==0){
+            throw("Error : Can't Find the Variable"+this->type+"\n");
+        }
+        Type* variable_type = type_map[this->type];
+        if (table_mem[stage].count(this->name)>0){
+            throw("Error : Redefine of "+this->name+"\n");
+        }
+        if (this->is_array){
+            ArrayType* array_type = ArrayType::get(variable_type, this->array_length);
+            AllocaInst* local_variable = builder.CreateAlloca(array_type, nullptr, this->name);
+
+            table_mem[stage][this->name] = local_variable;
+            table_type[stage][this->name] = variable_type;
+            table_array[stage][this->name] = true;
+        } else {
+            AllocaInst* local_variable = builder.CreateAlloca(variable_type, nullptr, this->name);
+            table_mem[stage][this->name] = local_variable;
+            table_type[stage][this->name] = variable_type;
+            table_array[stage][this->name] = false;
+        }
     }
-    // printf("Return\n");
     return nullptr;
 }
 
@@ -95,22 +110,22 @@ extern std::vector<Value*> idx_set;
 
 ASTNodes::CodeGenResult* ASTNodes::VarAccessNode::code_gen(){
     if (this->nested_var == nullptr){
-        if (table_mem.count(this->var_name)==0){
-            throw("Error : Undefined of "+this->var_name);
+        for (int stage_pointer = stage; stage_pointer>=0; stage_pointer--){
+            if (table_mem[stage_pointer].count(this->var_name)>0){
+                Value* pointer = table_mem[stage_pointer][this->var_name];
+                auto _type = table_type[stage_pointer][this->var_name];
+                Value* _mem = pointer;
+                if (table_array[stage_pointer][this->var_name]){ // array Var
+                    Value* array_idx = this->idx->code_gen()->get_value();
+                    idx_set.push_back(builder.getInt64(0));
+                    idx_set.push_back(array_idx);
+                } else { // Simple Var;
+                    idx_set.push_back(builder.getInt64(0));
+                }
+                return new CodeGenResult(_mem, _type, nullptr);
+            }
         }
-        Value* pointer = table_mem[this->var_name];
-        auto _type = table_type[this->var_name];
-        Value* _mem = pointer;
-        if (table_array[this->var_name]){ // array Var
-            // printf("Gen IDX Low\n");
-            Value* array_idx = this->idx->code_gen()->get_value();
-            // printf("End Low\n");
-            idx_set.push_back(builder.getInt64(0));
-            idx_set.push_back(array_idx);
-        } else { // Simple Var;
-            idx_set.push_back(builder.getInt64(0));
-        }
-        return new CodeGenResult(_mem, _type, nullptr);
+        throw("Error : Undefined of "+this->var_name+"\n");
     } else {
         CodeGenResult* temp = this->nested_var->code_gen();
         Value* _mem = temp->mem;
@@ -127,9 +142,7 @@ ASTNodes::CodeGenResult* ASTNodes::VarAccessNode::code_gen(){
             }
         }
         if (above_array_list[struct_position]){ //array Var
-            // printf("Gen IDX High\n");
             Value* array_idx = this->idx->code_gen()->get_value();
-            // printf("End High\n");
             idx_set.push_back(builder.getInt32(struct_position));
             idx_set.push_back(array_idx);
         } else { // Simple Var
@@ -142,32 +155,31 @@ ASTNodes::CodeGenResult* ASTNodes::VarAccessNode::code_gen(){
 ASTNodes::CodeGenResult* ASTNodes::VarBaseNode::code_gen(){
     int now_size = idx_set.size();
     if (this->nested_var == nullptr){
-        if (table_mem.count(this->var_name)==0){
-            throw("Error : Undefined of "+this->var_name);
+        for (int stage_pointer=stage; stage_pointer>=0; --stage_pointer){
+            if (table_mem[stage_pointer].count(this->var_name)>0){
+                Value* pointer = table_mem[stage_pointer][this->var_name];
+                auto _type = table_type[stage_pointer][this->var_name];
+                Value* _mem = pointer;
+                if (table_array[stage_pointer][this->var_name]){ // array Var
+                    Value* array_idx = this->idx->code_gen()->get_value();
+                    idx_set.push_back(builder.getInt64(0));
+                    idx_set.push_back(array_idx);
+                } else { // Simple Var;
+                    idx_set.push_back(builder.getInt64(0));
+                }
+                std::vector<Value*> now_set;
+                now_set.clear();
+                for (int i=now_size; i<idx_set.size(); ++i){
+                    now_set.push_back(idx_set[i]);
+                }
+                while(idx_set.size()>now_size)
+                    idx_set.pop_back();
+                ArrayRef<Value*> idx_ref(now_set);
+                _mem = builder.CreateGEP(_mem, idx_ref);
+                return new CodeGenResult(_mem, _type, nullptr);
+            }
         }
-        Value* pointer = table_mem[this->var_name];
-        auto _type = table_type[this->var_name];
-        Value* _mem = pointer;
-        if (table_array[this->var_name]){ // array Var
-            // printf("GEN IDX Low\n");
-            Value* array_idx = this->idx->code_gen()->get_value();
-            // printf("End Low\n");
-            idx_set.push_back(builder.getInt64(0));
-            idx_set.push_back(array_idx);
-        } else { // Simple Var;
-            idx_set.push_back(builder.getInt64(0));
-        }
-        std::vector<Value*> now_set;
-        now_set.clear();
-        for (int i=now_size; i<idx_set.size(); ++i){
-            now_set.push_back(idx_set[i]);
-        }
-        while(idx_set.size()>now_size)
-            idx_set.pop_back();
-        ArrayRef<Value*> idx_ref(now_set);
-        _mem = builder.CreateGEP(_mem, idx_ref);
-        return new CodeGenResult(_mem, _type, nullptr);
-
+        throw("Error : Undefined of "+this->var_name+"\n");
     } else {
         CodeGenResult* temp = this->nested_var->code_gen();
         Value* _mem = temp->mem;
@@ -184,9 +196,7 @@ ASTNodes::CodeGenResult* ASTNodes::VarBaseNode::code_gen(){
             }
         }
         if (above_array_list[struct_position]){ //array Var
-            // printf("GEN IDX High\n");
             Value* array_idx = this->idx->code_gen()->get_value();
-            // printf("End High\n");
             idx_set.push_back(builder.getInt32(struct_position));
             idx_set.push_back(array_idx);
         } else { // Simple Var

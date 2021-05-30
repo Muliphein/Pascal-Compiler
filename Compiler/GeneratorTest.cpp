@@ -425,16 +425,108 @@ void test5(){
     ReturnNode* ret = new ReturnNode();
     ret->val = dynamic_pointer_cast<BasicNode>(shared_ptr<ConstantNode>(zero));
 
-    StmtSeqNode* stmts = new StmtSeqNode();
-    stmts->stmts.clear();
-    stmts->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<SysReadNode>(sysRead)));
-    stmts->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(cAssign)));
-    stmts->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<SysWriteNode>(sysWrite)));
-    stmts->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<ReturnNode>(ret)));
+    FunctionBodyNode* funcBody = new FunctionBodyNode();
+    funcBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<SysReadNode>(sysRead)));
+    funcBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(cAssign)));
+    funcBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<SysWriteNode>(sysWrite)));
+    funcBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<ReturnNode>(ret)));
 
     FunctionNode* mainFun = new FunctionNode();
     mainFun->func_declare = shared_ptr<FunDeclareNode>(funcDefine);
-    mainFun->func_body = dynamic_pointer_cast<BasicNode>(shared_ptr<StmtSeqNode>(stmts));
+    mainFun->func_body = shared_ptr<FunctionBodyNode>(funcBody);
+    
+    Root->parts.push_back(shared_ptr<FunctionNode>(mainFun));
+
+    generator(Root);
+}
+
+
+void test6(){
+    gene_init("test");
+    ProgramNode* Root = new ProgramNode();
+
+    VariableDefineNode* aDefine = new VariableDefineNode();
+    aDefine->name="a";
+    aDefine->type="integer";
+    aDefine->is_array = false;
+    aDefine->array_length = 0;
+
+    VariableDefineNode* bDefine = new VariableDefineNode();
+    bDefine->name="b";
+    bDefine->type="integer";
+    bDefine->is_array = false;
+    bDefine->array_length = 0;
+
+    VariableDefineNode* cDefine = new VariableDefineNode();
+    cDefine->name="c";
+    cDefine->type="integer";
+    cDefine->is_array = false;
+    cDefine->array_length = 0;
+
+    Root->parts.clear();
+    Root->parts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VariableDefineNode>(aDefine)));
+    Root->parts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VariableDefineNode>(bDefine)));
+    Root->parts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VariableDefineNode>(cDefine)));
+
+    FunDeclareNode* funcDefine = new FunDeclareNode();
+    funcDefine->function_name = "main";
+    funcDefine->ret_type = Int64Type;
+    funcDefine->function_arg_types.clear();
+    funcDefine->function_arg_names.clear();
+
+    ConstantNode* zero = new ConstantNode();
+    zero->constant_type = Int64Type;
+    zero->constant_value = ConstantInt::get(Int64Type, 0);
+
+    VarBaseNode* aAccess = new VarBaseNode();
+    aAccess->var_name = "a";
+    aAccess->idx=nullptr;
+    aAccess->nested_var =nullptr;
+
+    VarBaseNode* bAccess = new VarBaseNode();
+    bAccess->var_name = "b";
+    bAccess->idx=nullptr;
+    bAccess->nested_var = nullptr;
+    
+    VarBaseNode* cAccess = new VarBaseNode();
+    cAccess->var_name = "c";
+    cAccess->idx=nullptr;
+    cAccess->nested_var = nullptr;
+
+    SysReadNode* sysRead = new SysReadNode();
+    sysRead->has_newline=true;
+    sysRead->args.clear();
+    sysRead->args.push_back(shared_ptr<VarBaseNode>(aAccess));
+    sysRead->args.push_back(shared_ptr<VarBaseNode>(bAccess));
+
+    BinaryExprNode* aPlusb = new BinaryExprNode();
+    aPlusb->expr_op = BinaryOper::PLUS;
+    aPlusb->LHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(aAccess));
+    aPlusb->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(bAccess));
+
+    AssignNode* cAssign = new AssignNode();
+    cAssign->LHS = shared_ptr<VarBaseNode>(cAccess);
+    cAssign->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<BinaryExprNode>(aPlusb));
+
+    SysWriteNode* sysWrite = new SysWriteNode();
+    sysWrite->has_newline = true;
+    sysWrite->args.clear();
+    sysWrite->args.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(cAccess)));
+
+    ReturnNode* ret = new ReturnNode();
+    ret->val = dynamic_pointer_cast<BasicNode>(shared_ptr<ConstantNode>(zero));
+
+    FunctionBodyNode* funcBody = new FunctionBodyNode();
+    funcBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VariableDefineNode>(bDefine)));
+    funcBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VariableDefineNode>(cDefine)));
+    funcBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<SysReadNode>(sysRead)));
+    funcBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(cAssign)));
+    funcBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<SysWriteNode>(sysWrite)));
+    funcBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<ReturnNode>(ret)));
+
+    FunctionNode* mainFun = new FunctionNode();
+    mainFun->func_declare = shared_ptr<FunDeclareNode>(funcDefine);
+    mainFun->func_body = shared_ptr<FunctionBodyNode>(funcBody);
     
     Root->parts.push_back(shared_ptr<FunctionNode>(mainFun));
 
@@ -444,12 +536,13 @@ void test5(){
 int main()
 {
 
-    // test1(); // Basic Test a(Int)+b(Int) Problem
-    // test2(); // Bool Type Test
-    // test3(); // Array Type Test a+b Problem
-    // test4(); // Struct Type Test a+b Problem;
     try{
-        test5(); // Variable Index
+        // test1(); // Basic Test a(Int)+b(Int) Problem
+        // test2(); // Bool Type Test
+        // test3(); // Array Type Test a+b Problem
+        // test4(); // Struct Type Test a+b Problem;
+        // test5(); // Variable Index
+        test6(); // Local Variable
     } catch (char const * s){
         cout<<s<<endl;
     }
