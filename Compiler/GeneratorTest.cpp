@@ -533,7 +533,6 @@ void test6(){
 
     generator(Root);
 }
-#endif
 
 void test7(){
     gene_init("test");
@@ -631,6 +630,130 @@ void test7(){
 
     generator(Root);
 }
+#endif
+
+void test8(){
+    gene_init("test");
+    ProgramNode* Root = new ProgramNode();
+
+    VariableDefineNode* aDefine = new VariableDefineNode();
+    aDefine->name="a";
+    aDefine->type="integer";
+    aDefine->is_array = false;
+    aDefine->array_length = 0;
+
+
+    VariableDefineNode* bDefine = new VariableDefineNode();
+    bDefine->name="b";
+    bDefine->type="integer";
+    bDefine->is_array = false;
+    bDefine->array_length = 0;
+
+    ConstantNode* zero = new ConstantNode();
+    zero->constant_type = IntType;
+    zero->constant_value = ConstantInt::get(IntType, 0);
+
+    VarBaseNode* aAccess = new VarBaseNode();
+    aAccess->var_name = "a";
+    aAccess->idx=nullptr;
+    aAccess->nested_var =nullptr;
+    
+    VarBaseNode* bAccess = new VarBaseNode();
+    bAccess->var_name = "b";
+    bAccess->idx=nullptr;
+    bAccess->nested_var =nullptr;
+
+    VarBaseNode* maxAccess = new VarBaseNode();
+    maxAccess->var_name = "max";
+    maxAccess->idx=nullptr;
+    maxAccess->nested_var =nullptr;
+
+    SysReadNode* sysRead = new SysReadNode();
+    sysRead->has_newline=true;
+    sysRead->args.clear();
+    sysRead->args.push_back(shared_ptr<VarBaseNode>(aAccess));
+    sysRead->args.push_back(shared_ptr<VarBaseNode>(bAccess));
+
+    // Max Function
+    FunDeclareNode* mulFunc = new FunDeclareNode();
+    mulFunc->function_name = "max";
+    mulFunc->ret_type_name = "integer";
+    mulFunc->function_arg_types_names.push_back("integer");
+    mulFunc->function_arg_types_names.push_back("integer");
+    mulFunc->function_arg_names.push_back("a");
+    mulFunc->function_arg_names.push_back("b");
+
+    ReturnNode* aRet = new ReturnNode();
+    aRet->val = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(aAccess));
+    ReturnNode* bRet = new ReturnNode();
+    bRet->val = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(bAccess));
+    ReturnNode* mulRet = new ReturnNode();
+    mulRet->val = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(maxAccess));
+
+    AssignNode* aAssign = new AssignNode();
+    aAssign->LHS = shared_ptr<VarBaseNode>(maxAccess);
+    aAssign->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(aAccess));
+
+    AssignNode* bAssign = new AssignNode();
+    bAssign->LHS = shared_ptr<VarBaseNode>(maxAccess);
+    bAssign->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(bAccess));
+
+    BinaryExprNode* comp = new BinaryExprNode();
+    comp->expr_op = BinaryOper::GE;
+    comp->LHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(aAccess));
+    comp->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(bAccess));
+
+    IfElseNode* choice = new IfElseNode();
+    choice->cond = dynamic_pointer_cast<BasicNode>(shared_ptr<BinaryExprNode>(comp));
+    choice->then_body = dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(aAssign));
+    choice->else_body = dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(bAssign));
+
+    FunctionBodyNode* mulBody = new FunctionBodyNode();
+    mulBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<IfElseNode>(choice)));
+    mulBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<ReturnNode>(mulRet)));
+
+    FunctionNode* mulNode = new FunctionNode();
+    mulNode->func_declare = shared_ptr<FunDeclareNode>(mulFunc);
+    mulNode->func_body = shared_ptr<FunctionBodyNode>(mulBody);
+    // Max End
+
+    // Main
+    FunDeclareNode* mainFunc = new FunDeclareNode();
+    mainFunc->function_name = "main";
+    mainFunc->ret_type_name = "integer";
+    mainFunc->function_arg_types_names.clear();
+    mainFunc->function_arg_names.clear();
+
+    FunctionCallNode* mulCall = new FunctionCallNode();
+    mulCall->func_name = "max";
+    mulCall->args.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(aAccess)));
+    mulCall->args.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(bAccess)));
+
+    SysWriteNode* sysWrite = new SysWriteNode();
+    sysWrite->has_newline = true;
+    sysWrite->args.clear();
+    sysWrite->args.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<FunctionCallNode>(mulCall)));
+
+    ReturnNode* mainRet = new ReturnNode();
+    mainRet->val = dynamic_pointer_cast<BasicNode>(shared_ptr<ConstantNode>(zero));
+
+    FunctionBodyNode* mainBody = new FunctionBodyNode();
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VariableDefineNode>(aDefine)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VariableDefineNode>(bDefine)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<SysReadNode>(sysRead)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<SysWriteNode>(sysWrite)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<ReturnNode>(mainRet)));
+
+    FunctionNode* mainNode = new FunctionNode();
+    mainNode->func_declare = shared_ptr<FunDeclareNode>(mainFunc);
+    mainNode->func_body = shared_ptr<FunctionBodyNode>(mainBody);
+    // Main End
+
+    Root->parts.push_back(shared_ptr<FunctionNode>(mulNode));
+    Root->parts.push_back(shared_ptr<FunctionNode>(mainNode));
+
+    generator(Root);
+}
 
 int main()
 {
@@ -642,7 +765,8 @@ int main()
         // test4(); // Struct Type Test a+b Problem;
         // test5(); // Variable Index
         // test6(); // Local Variable
-        test7(); // Local Var + Function Call
+        // test7(); // Local Var + Function Call
+        test8(); // If Condition
     } catch (char const * s){
         cout<<s<<endl;
     } catch (string s){

@@ -210,6 +210,24 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
     };
 
+    class RepeatNode: public BasicNode{
+      public:
+        std::shared_ptr<BasicNode> rep_con;
+        bool reverse; // false When Meet Rep ---- true When Meen Jump Out
+        bool is_start; // false At End Rep Condition ---- true At Begin Rep Condition
+        std::shared_ptr<BasicNode> rep_body_node;
+        RepeatNode(){};
+        CodeGenResult* code_gen() override;
+    };
+
+    class IfElseNode: public BasicNode{
+      public:
+        std::shared_ptr<BasicNode> cond;
+        std::shared_ptr<BasicNode> then_body;
+        std::shared_ptr<BasicNode> else_body;
+        CodeGenResult* code_gen() override;
+    };
+
 }
 
 #endif

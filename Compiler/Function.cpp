@@ -81,6 +81,11 @@ ASTNodes::CodeGenResult* ASTNodes::FunctionBodyNode::code_gen(){
         builder.CreateStore(arg, temp_mem);
     }
 
+    VariableDefineNode * arg_define = new VariableDefineNode(
+        name_map[func_pointer->getFunctionType()->getReturnType()], false, 0, now_function
+    );
+    arg_define->code_gen();
+
     // printf("Over Param Define\n");
     for (auto stmt: this->stmts){
         // printf("find a Node\n");
