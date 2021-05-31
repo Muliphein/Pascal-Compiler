@@ -56,15 +56,20 @@ ASTNodes::CodeGenResult* ASTNodes::SysReadNode::code_gen(){
 }
 
 ASTNodes::CodeGenResult* ASTNodes::SysWriteNode::code_gen(){
+    // printf("Start Write\n");
     std::string _string="";
     std::vector<Value*> printf_args;
     printf_args.push_back(nullptr);
 
     for (auto arg: this->args){
+        // printf("Goint Deep\n");
         ASTNodes::CodeGenResult* temp=arg->code_gen();
+        // printf("Deep out\n");
         if (temp->type == IntType){
             _string += "%hd";
+            // printf("Find Type d\n");
             printf_args.push_back(temp->get_value());
+            // printf("Over\n");
         } else if (temp->type == CharType){
             _string += "%c";
             printf_args.push_back(temp->get_value());
@@ -83,7 +88,7 @@ ASTNodes::CodeGenResult* ASTNodes::SysWriteNode::code_gen(){
     if (this->has_newline){
         _string += "\n";
     }
-
+    // std::cout<<"format String : "<<_string<<std::endl;
     GlobalVariable* format_string = builder.CreateGlobalString(_string);
     Value* format= builder.CreateGEP(format_string, {builder.getInt64(0), builder.getInt64(0)});
     Function* printf_function=module->getFunction("printf");

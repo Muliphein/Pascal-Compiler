@@ -52,7 +52,9 @@ ASTNodes::CodeGenResult* ASTNodes::StmtSeqNode::code_gen(){
 }
 
 ASTNodes::CodeGenResult* ASTNodes::ProgramNode::code_gen(){
+    // printf("In Program\n");
     for (auto arg: this->parts)
         arg->code_gen();
+    // printf("Out Program\n");
     return nullptr;
 }

@@ -9,6 +9,7 @@ extern std::shared_ptr<Module> module;
 
 extern int stage;
 extern std::map<std::string, Type*> type_map;// TypeName -> Type Pointer
+extern std::map<Type*, std::string> name_map;// Type -> TypeName Pointer <Global>
 extern std::map<Type*, Constant*> zero_initial;// Type -> zeroinitial
 
 extern std::map<std::string, Value*> table_mem[MAX_NESTED];// VarName -> Memory
@@ -28,6 +29,7 @@ ASTNodes::CodeGenResult* ASTNodes::RecordTypeDefineNode::code_gen(){
 
     StructType* struct_type = StructType::create(context, this->record_name);
     type_map[this->record_name] = struct_type;
+    name_map[struct_type] = this->record_name;
 
     record_type_list[struct_type] = *new std::vector<Type*>;
     record_member_name_list[struct_type] = *new std::vector<std::string>;

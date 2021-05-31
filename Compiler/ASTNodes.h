@@ -61,6 +61,11 @@ namespace ASTNodes{
         std::shared_ptr<BasicNode> idx;
         std::shared_ptr<VarAccessNode> nested_var = nullptr;
         VarBaseNode(){};
+        VarBaseNode(std::string _var_name, std::shared_ptr<BasicNode> _idx, std::shared_ptr<VarAccessNode> _nested_var){
+            var_name = _var_name;
+            idx = _idx;
+            nested_var = _nested_var;
+        };
         CodeGenResult* code_gen() override;
     };
 
@@ -79,6 +84,12 @@ namespace ASTNodes{
         int array_length;
         std::string name;
         VariableDefineNode(){};
+        VariableDefineNode(std::string _type, bool _is_array, int _array_length, std::string _name){
+            type = _type;
+            is_array = _is_array;
+            array_length=_array_length;
+            name=_name;
+        };
         CodeGenResult* code_gen() override;
     };
 
@@ -101,8 +112,8 @@ namespace ASTNodes{
     class FunDeclareNode: public BasicNode{
     public:
         std::string function_name;
-        Type* ret_type;
-        std::vector<Type*> function_arg_types;
+        std::string ret_type_name;
+        std::vector<std::string> function_arg_types_names;
         std::vector<std::string> function_arg_names; // necessary
         FunDeclareNode(){};
         CodeGenResult* code_gen() override;
@@ -187,6 +198,15 @@ namespace ASTNodes{
         std::vector<int> mem_arrag_length; //0
         
         RecordTypeDefineNode(){};
+        CodeGenResult* code_gen() override;
+    };
+
+    class FunctionCallNode: public BasicNode{
+      public:
+        std::string func_name;
+        std::vector<std::shared_ptr<BasicNode> > args;
+
+        FunctionCallNode(){};
         CodeGenResult* code_gen() override;
     };
 

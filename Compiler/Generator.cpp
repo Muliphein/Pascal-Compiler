@@ -9,6 +9,7 @@ std::vector<Value*> idx_set;
 
 int stage = 0;
 std::map<std::string, Type*> type_map;// TypeName -> Type Pointer
+std::map<Type*, std::string> name_map;// Type -> TypeName Pointer <Global>
 std::map<Type*, Constant*> zero_initial;// Type -> zeroinitial
 std::string now_function;
 
@@ -57,12 +58,19 @@ void build_basic_type()
     BoolType = Type::getInt1Ty(context);
 
     type_map["char"] = ByteType;
+    name_map[ByteType] = "char";
     zero_initial[ByteType] = ConstantInt::get(ByteType, 0);
+
     type_map["integer"] = IntType;
+    name_map[IntType] = "integer";
     zero_initial[IntType] = ConstantInt::get(IntType, 0);
+
     type_map["real"] = RealType;
+    name_map[RealType] = "real";
     zero_initial[RealType] = ConstantFP::get(RealType, 0);
+    
     type_map["bool"] = BoolType;
+    name_map[BoolType] = "bool";
     zero_initial[BoolType] = ConstantInt::get(BoolType, 0);
 
 }
