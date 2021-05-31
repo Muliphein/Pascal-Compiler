@@ -12,14 +12,6 @@ extern std::map<std::string, bool> table_array[MAX_NESTED];// VarName -> Array
 
 extern std::string now_function;
 
-
-ASTNodes::CodeGenResult* ASTNodes::AssignNode::code_gen(){
-    CodeGenResult* rhs = this->RHS->code_gen();
-    CodeGenResult* lhs = this->LHS->code_gen();
-    builder.CreateStore(rhs->get_value(), lhs->mem);
-    return rhs;
-}
-
 bool check_bool(Type* x){
     return x==BoolType;
 }
@@ -47,10 +39,58 @@ Value* type_cast(Value* v, Type* dt){
         } else if (dt == CharType){
             return builder.CreateZExt(v, IntType);
         } else {
-            throw new IRBuilderMeesage("[IRBuilder] Error : {Convert Wrong} Report this Issue to Manager");
+            throw new IRBuilderMeesage("[IRBuilder] Error : Type Wrong");
         }
     }
-    throw new IRBuilderMeesage("[IRBuilder] Error : {Convert Wrong} Report this Issue to Manager");
+    throw new IRBuilderMeesage("[IRBuilder] Error : Type Wrong");
+}
+
+Value* assign_cast(Value* v, Type* dt){
+    Type* vt = v->getType();
+    if (vt == dt) return v;
+    if (dt == BoolType){
+        if (vt == RealType){
+            throw new IRBuilderMeesage("[IRBuilder] Error : Type Wrong");
+        } else if (vt == IntType){
+            return builder.CreateICmpNE(v, ConstantInt::get(IntType, 0));
+        } else if (vt == CharType){
+            return builder.CreateICmpNE(v, ConstantInt::get(CharType, 0));
+        } else throw new IRBuilderMeesage("[IRBuilder] Error : Type Wrong");
+    } else if (dt == IntType){
+        if (vt == RealType){
+            return builder.CreateFPToSI(v, IntType);
+        } else if (vt == BoolType){
+            return builder.CreateZExt(v, IntType);
+        } else if (vt == CharType){
+            return builder.CreateZExt(v, IntType);
+        } else throw new IRBuilderMeesage("[IRBuilder] Error : Type Wrong");
+    } else if (dt == CharType){
+        if (vt == RealType){
+            return builder.CreateFPToUI(v, CharType);
+        } else if (vt == BoolType){
+            return builder.CreateZExt(v, CharType);
+        } else if (vt == IntType){
+            return builder.CreateTrunc(v, CharType);
+        } else throw new IRBuilderMeesage("[IRBuilder] Error : Type Wrong");
+    } else if (dt == RealType){
+        if (vt == CharType){
+            return builder.CreateUIToFP(v, RealType);
+        } else if (vt == BoolType){
+            return builder.CreateUIToFP(v, RealType);
+        } else if (vt == IntType){
+            return builder.CreateSIToFP(v, RealType);
+        } else throw new IRBuilderMeesage("[IRBuilder] Error : Type Wrong");
+    }
+    throw new IRBuilderMeesage("[IRBuilder] Error : Type Wrong");
+}
+
+ASTNodes::CodeGenResult* ASTNodes::AssignNode::code_gen(){
+    CodeGenResult* rhs = this->RHS->code_gen();
+    CodeGenResult* lhs = this->LHS->code_gen();
+    Value* rv = rhs->get_value();
+    assign_cast(rv, lhs->type);
+    builder.CreateStore(rv, lhs->mem);
+    return rhs;
 }
 
 ASTNodes::CodeGenResult* ASTNodes::BinaryExprNode::code_gen(){
