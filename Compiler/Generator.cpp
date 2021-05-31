@@ -1,4 +1,3 @@
-#include "BasicLLVM.h"
 #include "ASTNodes.h"
 using namespace llvm;
 
@@ -37,6 +36,7 @@ Type* DoubleType;   // 8 byte double
 
 Type* CharType; // 1 byte *
 Type* BoolType; // 1 bit *
+Type* VoidType;
 
 void build_basic_type()
 {
@@ -53,6 +53,7 @@ void build_basic_type()
     RealType = Type::getFloatTy(context);
     DoubleType = Type::getDoubleTy(context);
     // ExtendType = Type::getExtendedType(context);
+    VoidType = Type::getVoidTy(context);
 
     CharType = Type::getInt8Ty(context);
     BoolType = Type::getInt1Ty(context);
@@ -72,6 +73,9 @@ void build_basic_type()
     type_map["bool"] = BoolType;
     name_map[BoolType] = "bool";
     zero_initial[BoolType] = ConstantInt::get(BoolType, 0);
+
+    type_map["void"] = VoidType;
+    name_map[VoidType] = "void";
 
 }
 

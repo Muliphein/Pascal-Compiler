@@ -1,5 +1,3 @@
-#include "BasicType.h"
-#include "BasicLLVM.h"
 #include "ASTNodes.h"
 
 extern LLVMContext context;

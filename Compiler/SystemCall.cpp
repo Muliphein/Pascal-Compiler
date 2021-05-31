@@ -1,5 +1,4 @@
-#include "SystemCall.h"
-#include "BasicType.h"
+#include "ASTNodes.h"
 
 extern LLVMContext context;
 extern IRBuilder<> builder;
@@ -29,7 +28,7 @@ ASTNodes::CodeGenResult* ASTNodes::SysReadNode::code_gen(){
             auto _var_int = builder.CreateGEP(_int_space, builder.getInt64(0));
             scanf_args.push_back(_var_int);
         } else {
-            throw "Wrong Type In Read(ln)\n";
+            throw new IRBuilderMeesage("[IRBuilder] Error : Wrong Type In Read(ln)");
         }
     }
     if (this->has_newline){
@@ -62,14 +61,10 @@ ASTNodes::CodeGenResult* ASTNodes::SysWriteNode::code_gen(){
     printf_args.push_back(nullptr);
 
     for (auto arg: this->args){
-        // printf("Goint Deep\n");
         ASTNodes::CodeGenResult* temp=arg->code_gen();
-        // printf("Deep out\n");
         if (temp->type == IntType){
             _string += "%hd";
-            // printf("Find Type d\n");
             printf_args.push_back(temp->get_value());
-            // printf("Over\n");
         } else if (temp->type == CharType){
             _string += "%c";
             printf_args.push_back(temp->get_value());
@@ -81,14 +76,14 @@ ASTNodes::CodeGenResult* ASTNodes::SysWriteNode::code_gen(){
             Value * res = builder.CreateZExt(temp->get_value(), Int64Type);
             printf_args.push_back(res);
         } else {
-            throw "Wrong Type In Read(ln)";
+            throw new IRBuilderMeesage("[IRBuilder] Error : Wrong Type In Write(ln)");
         }
     }
 
     if (this->has_newline){
         _string += "\n";
     }
-    // std::cout<<"format String : "<<_string<<std::endl;
+
     GlobalVariable* format_string = builder.CreateGlobalString(_string);
     Value* format= builder.CreateGEP(format_string, {builder.getInt64(0), builder.getInt64(0)});
     Function* printf_function=module->getFunction("printf");

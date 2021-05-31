@@ -1,6 +1,4 @@
-#include "SystemCall.h"
-#include "BasicType.h"
-#include "BinaryOp.h"
+#include "ASTNodes.h"
 
 extern LLVMContext context;
 extern IRBuilder<> builder;
@@ -22,31 +20,123 @@ ASTNodes::CodeGenResult* ASTNodes::AssignNode::code_gen(){
     return rhs;
 }
 
+bool check_bool(Type* x){
+    return x==BoolType;
+}
+
+Type* get_lcm_type(Type* a, Type* b){
+    if ( a==RealType || b==RealType ) return RealType;
+    if ( a==IntType || b==IntType ) return IntType;
+    if ( a==CharType || b==CharType ) return CharType;
+    return BoolType;
+}
+
+Value* type_cast(Value* v, Type* dt){
+    Type* vt = v->getType();
+    if (vt == dt){
+        return v;
+    } else {
+        if (dt == RealType){
+            if (vt==BoolType || vt == CharType){
+                return builder.CreateUIToFP(v, RealType);
+            } else { // IntType -> RealType
+                return builder.CreateSIToFP(v, RealType);
+            }
+        } else if (dt == IntType){
+            return builder.CreateZExt(v, IntType);
+        } else if (dt == CharType){
+            return builder.CreateZExt(v, IntType);
+        } else {
+            throw new IRBuilderMeesage("[IRBuilder] Error : {Convert Wrong} Report this Issue to Manager");
+        }
+    }
+    throw new IRBuilderMeesage("[IRBuilder] Error : {Convert Wrong} Report this Issue to Manager");
+}
+
 ASTNodes::CodeGenResult* ASTNodes::BinaryExprNode::code_gen(){
-    // printf("Start Binary Expr Node\n");
+
     CodeGenResult* lhs = this->LHS->code_gen();
     CodeGenResult* rhs = this->RHS->code_gen();
     
-    if (lhs->type != rhs->type){
-        throw("Error : Not the same Type. UnSupport cast\n");
+    Value* lv = lhs->get_value();
+    Value* rv = rhs->get_value();
+
+    BinaryOper now_op = this->expr_op;
+    bool ret_real = false;
+    Type* lcm_type;
+
+    if (now_op == AND || now_op == OR){
+        if ( (!check_bool(lv->getType())) || (!check_bool(rv->getType())) )
+            throw new IRBuilderMeesage("[IRBuilder] Error : AND/OR's Bboth Sides Should be Bool Type");
     } else {
-        Type* _type;
-        Value* _value;
-        switch (this->expr_op){
-            case PLUS:
-                _type = lhs->type;
-                _value=builder.CreateBinOp(Instruction::BinaryOps::Add, lhs->get_value(), rhs->get_value());
-            break;
-            case GE:
-                _value=builder.CreateICmpSGE(lhs->get_value(), rhs->get_value());
-                _type=_value->getType();
-            break;
-            default:
-                throw("Error : UnSupport Binary Operation\n");
+
+        lcm_type = get_lcm_type(lv->getType(), rv->getType());
+        if (lcm_type == RealType && (now_op==DIV||now_op==MOD) ){
+            throw new IRBuilderMeesage("[IRBuilder] Error : DIV/MOS's Bboth Sides Shouldn't be Real Type");
+        } else if (lcm_type == BoolType || lcm_type == CharType){
+            lcm_type = IntType;
         }
-        // printf("End Binary Expr Node\n");
-        return new CodeGenResult(nullptr, _type, _value);
+
+        lv = type_cast(lv, lcm_type);
+        rv = type_cast(rv, lcm_type);
     }
+
+    Value* _value;
+    switch (this->expr_op){
+        // ---- Only For Bool
+        case OR:
+            _value=builder.CreateOr(lv, rv);
+        break;
+        case AND:
+            _value=builder.CreateAnd(lv, rv);
+        break;
+
+        // ---- For Real Int
+        case PLUS:
+            _value=builder.CreateBinOp(Instruction::BinaryOps::Add, lv, rv);
+        break;
+        case MINUS:
+            _value=builder.CreateBinOp(Instruction::BinaryOps::Sub, lv, rv);
+        break;
+        case MUL:
+            _value=builder.CreateBinOp(Instruction::BinaryOps::Mul, lv, rv);
+        break;
+        case DIVISION:
+            _value=builder.CreateBinOp(Instruction::BinaryOps::SDiv, lv, rv);
+        break;
+
+        // ---- Only For Int
+        case DIV:
+            _value=builder.CreateSDiv(lv, rv);
+        break;
+        case MOD:
+            _value=builder.CreateSRem(lv, rv);
+        break;
+
+        // ---- For Real Int
+        case GE:
+            _value= lcm_type != RealType ? builder.CreateICmpSGE(lv, rv) : builder.CreateFCmpOGE(lv, rv);
+        break;
+        case GT:
+            _value= lcm_type != RealType ? builder.CreateICmpSGT(lv, rv) : builder.CreateFCmpOGT(lv, rv);
+        break;
+        case LE:
+            _value= lcm_type != RealType ? builder.CreateICmpSLE(lv, rv) : builder.CreateFCmpOLE(lv, rv);
+        break;
+        case LT:
+            _value= lcm_type != RealType ? builder.CreateICmpSLT(lv, rv) : builder.CreateFCmpOLT(lv, rv);
+        break;
+        case EQUAL:
+            _value= lcm_type != RealType ? builder.CreateICmpEQ(lv, rv) : builder.CreateFCmpOEQ(lv, rv);
+        break;
+        case UNEQUAL:
+            _value= lcm_type != RealType ? builder.CreateICmpNE(lv, rv) : builder.CreateFCmpONE(lv, rv);
+        break;
+
+        default:
+            throw new IRBuilderMeesage("[IRBuilder] Error : Undefined Binary Operand");
+    }
+    return new CodeGenResult(nullptr, _value->getType(), _value);
 }
 
 ASTNodes::CodeGenResult* ASTNodes::StmtSeqNode::code_gen(){
@@ -95,7 +185,7 @@ ASTNodes::CodeGenResult* ASTNodes::RepeatNode::code_gen(){
         } else {
             builder.CreateCondBr(this->rep_con->code_gen()->get_value(), rep_body_end, rep_body);
         }
-    } else builder.CreateBr(rep_body_end);
+    } else builder.CreateBr(rep_ent);
 
     builder.SetInsertPoint(rep_body_end);
     builder.CreateBr(rep_over);
@@ -104,18 +194,11 @@ ASTNodes::CodeGenResult* ASTNodes::RepeatNode::code_gen(){
 }
 
 ASTNodes::CodeGenResult* ASTNodes::IfElseNode::code_gen(){
-    // printf("Now Condition\n");
     Function* func = module->getFunction(now_function);
-    // printf("Get Function Over\n");
     BasicBlock * then_block = BasicBlock::Create(context, "then_block", func);
-    // printf("Get then Over\n");
     BasicBlock * else_block = BasicBlock::Create(context, "else_block", func);
-    // printf("Get else Over\n");
     BasicBlock * end_block  = BasicBlock::Create(context, "end_block" , func);
-    // printf("Get end Over\n");
-    // printf("Build Condition Before\n");
     builder.CreateCondBr(this->cond->code_gen()->get_value(), then_block, else_block);
-    // printf("Build Condition After\n");
     
     builder.SetInsertPoint(then_block);
     this->then_body->code_gen();

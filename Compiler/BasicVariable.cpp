@@ -1,5 +1,3 @@
-#include "BasicType.h"
-#include "BasicLLVM.h"
 #include "ASTNodes.h"
 
 extern LLVMContext context;
@@ -52,11 +50,11 @@ bool is_basic_type(Type* _type){
 ASTNodes::CodeGenResult* ASTNodes::VariableDefineNode::code_gen(){
     if (stage == 0){ // Do on the Global Table
         if (type_map.count(this->type)==0){
-            throw("Error : Can't Find the Variable"+this->type+"\n");
+            throw new IRBuilderMeesage("[IRBuilder] Error : Can't Find the Type <"+this->type+">");
         }
         Type* variable_type = type_map[this->type];
         if (table_mem[stage].count(this->name)>0){
-            throw("Error : Redefine of "+this->name+"\n");
+            throw new IRBuilderMeesage("[IRBuilder] Error : reDefine of <"+this->name+">");
         }
         if (this->is_array){
             ArrayType* array_type = ArrayType::get(variable_type, this->array_length);
@@ -82,17 +80,13 @@ ASTNodes::CodeGenResult* ASTNodes::VariableDefineNode::code_gen(){
             table_array[stage][this->name] = false;
         }
     } else {
-        // std::cout << "stage = "<<stage<<std::endl;
         if (type_map.count(this->type)==0){
-            throw("Error : Can't Find the Variable"+this->type+"\n");
+            throw new IRBuilderMeesage("[IRBuilder] Error : Can't Find the Type <"+this->type+">");
         }
-        // std::cout <<"Type is "<< this->type<<std::endl;
         Type* variable_type = type_map[this->type];
         
-        // std::cout <<"Var is "<< variable_type << std::endl;
-        // std::cout <<"Int is "<< IntType << std::endl;
         if (table_mem[stage].count(this->name)>0){
-            throw("Error : Redefine of "+this->name+"\n");
+            throw new IRBuilderMeesage("[IRBuilder] Error : reDefine of <"+this->name+">");
         }
         if (this->is_array){
             ArrayType* array_type = ArrayType::get(variable_type, this->array_length);
@@ -102,14 +96,10 @@ ASTNodes::CodeGenResult* ASTNodes::VariableDefineNode::code_gen(){
             table_type[stage][this->name] = variable_type;
             table_array[stage][this->name] = true;
         } else {
-            // std::cout<<"Start Alloca"<<std::endl;
-            // std::cout<<"name "<<this->name << std::endl;
             AllocaInst* local_variable = builder.CreateAlloca(variable_type, nullptr, this->name);
-            // std::cout<<"Alloca End"<<std::endl;
             table_mem[stage][this->name] = local_variable;
             table_type[stage][this->name] = variable_type;
             table_array[stage][this->name] = false;
-            // std::cout<<"Table End"<<std::endl;
         }
     }
     return nullptr;
@@ -134,7 +124,7 @@ ASTNodes::CodeGenResult* ASTNodes::VarAccessNode::code_gen(){
                 return new CodeGenResult(_mem, _type, nullptr);
             }
         }
-        throw("Error : Undefined of "+this->var_name+"\n");
+        throw new IRBuilderMeesage("[IRBuilder] Error : unDefine of <"+this->var_name+">");
     } else {
         CodeGenResult* temp = this->nested_var->code_gen();
         Value* _mem = temp->mem;
@@ -162,9 +152,7 @@ ASTNodes::CodeGenResult* ASTNodes::VarAccessNode::code_gen(){
 }
 
 ASTNodes::CodeGenResult* ASTNodes::VarBaseNode::code_gen(){
-    // std::cout<<"Start Access "<<this->var_name<<std::endl;
     int now_size = idx_set.size();
-    // std::cout<<"now Size = "<<now_size<<std::endl;
     if (this->nested_var == nullptr){
         for (int stage_pointer=stage; stage_pointer>=0; --stage_pointer){
             if (table_mem[stage_pointer].count(this->var_name)>0){
@@ -187,11 +175,10 @@ ASTNodes::CodeGenResult* ASTNodes::VarBaseNode::code_gen(){
                     idx_set.pop_back();
                 ArrayRef<Value*> idx_ref(now_set);
                 _mem = builder.CreateGEP(_mem, idx_ref);
-                // std::cout<<"Access Over"<<std::endl;
                 return new CodeGenResult(_mem, _type, nullptr);
             }
         }
-        throw("Error : Undefined of "+this->var_name+"\n");
+        throw new IRBuilderMeesage("[IRBuilder] Error : unDefine of <"+this->var_name+">");
     } else {
         CodeGenResult* temp = this->nested_var->code_gen();
         Value* _mem = temp->mem;

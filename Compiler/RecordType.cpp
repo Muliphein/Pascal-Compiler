@@ -1,6 +1,4 @@
 #include "ASTNodes.h"
-#include "BasicType.h"
-#include <iostream>
 
 extern LLVMContext context;
 extern IRBuilder<> builder;
@@ -24,7 +22,7 @@ extern std::map<Type*, std::vector<bool> > record_member_array;// StructType -> 
 ASTNodes::CodeGenResult* ASTNodes::RecordTypeDefineNode::code_gen(){
 
     if (type_map.count(this->record_name)>0){
-        throw("Error : ReDefine the Record type " + this->record_name + "\n");
+        throw new IRBuilderMeesage("[IRBuilder] Error : ReDefine the Record type <"+this->record_name+">");
     }
 
     StructType* struct_type = StructType::create(context, this->record_name);
@@ -34,12 +32,11 @@ ASTNodes::CodeGenResult* ASTNodes::RecordTypeDefineNode::code_gen(){
     record_type_list[struct_type] = *new std::vector<Type*>;
     record_member_name_list[struct_type] = *new std::vector<std::string>;
     record_member_array[struct_type] = *new std::vector<bool>;
-    // record_member_type_name_list[struct_type] = *new std::vector<std::string>;
 
     std::vector<Type*> elements;
     for (int i=0; i<this->member_type_name.size(); ++i){
         if (type_map.count(this->member_type_name[i])==0){
-            std:: cerr << "Error : Cant Find the Type " + this->member_type_name[i] + "\n";
+            throw new IRBuilderMeesage("[IRBuilder] Error : Cant Find the Type <"+this->member_type_name[i]+">");
         }
         auto member_type = type_map[this->member_type_name[i]];
         if (this->mem_is_array[i]){

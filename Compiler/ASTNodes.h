@@ -1,14 +1,72 @@
 #ifndef __ASTNODES_H__
 #define __ASTNODES_H__
 
-#include "BinaryOp.h"
-#include "BasicLLVM.h"
+#include "llvm/ADT/APFloat.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/Verifier.h"
+
+#include <cstdio>
 #include <iostream>
+#include <exception>
 
 #define MAX_NESTED 50
 
 using namespace llvm;
 extern IRBuilder<> builder;
+
+extern Type* ShortIntType; // 1 byte
+extern Type* IntType;  // 2 byte *
+extern Type* LongIntType;  // 4 byte
+extern Type* Int64Type;    // 8 byte
+
+extern Type* ByteType; // 1 byte Unsigned
+extern Type* WordType; // 2 byte Unsigned
+extern Type* DwordType;// 4 byte Unsigned
+extern Type* QwordType;// 8 byte Unsigned
+
+extern Type* RealType; // 4 byte float *
+extern Type* DoubleType;   // 8 byte double
+// extern Type* ExtendType;   // 10 byte ...
+
+extern Type* CharType; // 1 byte *
+extern Type* BoolType; // 1 bit *
+extern Type* VoidType; // void * (procedure)
+
+enum BinaryOper{
+    GE,
+    GT,
+    LE,
+    LT,
+    EQUAL,
+    UNEQUAL,
+    OR,
+    AND,
+    MUL,
+    DIVISION,
+    DIV,
+    MOD,
+    PLUS,
+    MINUS
+};
+
+class IRBuilderMeesage: public std::exception{
+  private:
+    std::string error_meesage;
+  public:
+    IRBuilderMeesage(std::string _error){error_meesage = _error;};
+    std::string message(){
+        return error_meesage;
+    }
+};
+
 namespace ASTNodes{
 
     class CodeGenResult{
@@ -184,7 +242,6 @@ namespace ASTNodes{
 
     class ReturnNode: public BasicNode{
       public:
-        std::shared_ptr<BasicNode> val;
         ReturnNode(){};
         CodeGenResult* code_gen() override;
     };

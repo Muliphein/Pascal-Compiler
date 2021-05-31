@@ -1,7 +1,4 @@
 #include "ASTNodes.h"
-#include "BasicType.h"
-#include "BinaryOp.h"
-#include <iostream>
 using namespace llvm;
 using namespace std;
 using namespace ASTNodes;
@@ -630,7 +627,6 @@ void test7(){
 
     generator(Root);
 }
-#endif
 
 void test8(){
     gene_init("test");
@@ -754,6 +750,296 @@ void test8(){
 
     generator(Root);
 }
+#endif
+
+void test9(){
+    gene_init("test");
+    ProgramNode* Root = new ProgramNode();
+
+    VariableDefineNode* iDefine = new VariableDefineNode();
+    iDefine->name="i";
+    iDefine->type="integer";
+    iDefine->is_array = false;
+    iDefine->array_length = 0;
+
+    VariableDefineNode* nDefine = new VariableDefineNode();
+    nDefine->name="n";
+    nDefine->type="integer";
+    nDefine->is_array = false;
+    nDefine->array_length = 0;
+
+    VariableDefineNode* sumDefine = new VariableDefineNode();
+    sumDefine->name="sum";
+    sumDefine->type="integer";
+    sumDefine->is_array = false;
+    sumDefine->array_length = 0;
+
+    ConstantNode* zero = new ConstantNode();
+    zero->constant_type = IntType;
+    zero->constant_value = ConstantInt::get(IntType, 0);
+
+    ConstantNode* one = new ConstantNode();
+    one->constant_type = IntType;
+    one->constant_value = ConstantInt::get(IntType, 1);
+
+    VarBaseNode* iAccess = new VarBaseNode();
+    iAccess->var_name = "i";
+    iAccess->idx=nullptr;
+    iAccess->nested_var =nullptr;
+    
+    VarBaseNode* sumAccess = new VarBaseNode();
+    sumAccess->var_name = "sum";
+    sumAccess->idx=nullptr;
+    sumAccess->nested_var =nullptr;
+
+    VarBaseNode* nAccess = new VarBaseNode();
+    nAccess->var_name = "n";
+    nAccess->idx=nullptr;
+    nAccess->nested_var =nullptr;
+
+    SysReadNode* sysRead = new SysReadNode();
+    sysRead->has_newline=true;
+    sysRead->args.clear();
+    sysRead->args.push_back(shared_ptr<VarBaseNode>(nAccess));
+
+    // Main
+
+    AssignNode* i_init = new AssignNode();
+    i_init->LHS = shared_ptr<VarBaseNode>(iAccess);
+    i_init->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<ConstantNode>(zero));
+    
+    AssignNode* n_init = new AssignNode();
+    n_init->LHS = shared_ptr<VarBaseNode>(nAccess);
+    n_init->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<ConstantNode>(zero));
+    
+    AssignNode* sum_init = new AssignNode();
+    sum_init->LHS = shared_ptr<VarBaseNode>(sumAccess);
+    sum_init->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<ConstantNode>(zero));
+
+    FunDeclareNode* mainFunc = new FunDeclareNode();
+    mainFunc->function_name = "main";
+    mainFunc->ret_type_name = "integer";
+    mainFunc->function_arg_types_names.clear();
+    mainFunc->function_arg_names.clear();
+
+    SysWriteNode* sysWrite = new SysWriteNode();
+    sysWrite->has_newline = true;
+    sysWrite->args.clear();
+    sysWrite->args.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(sumAccess)));
+
+    ReturnNode* mainRet = new ReturnNode();
+
+    BinaryExprNode* comp = new BinaryExprNode();
+    comp->expr_op = BinaryOper::GE;
+    comp->LHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(nAccess));
+    comp->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(iAccess));
+
+    BinaryExprNode* addone = new BinaryExprNode();
+    addone->expr_op = BinaryOper::PLUS;
+    addone->LHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(iAccess));
+    addone->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<ConstantNode>(one));
+
+    AssignNode* inc = new AssignNode();
+    inc->LHS = shared_ptr<VarBaseNode>(iAccess);
+    inc->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<BinaryExprNode>(addone));
+    
+    BinaryExprNode* sum_i = new BinaryExprNode();
+    sum_i->expr_op = BinaryOper::PLUS;
+    sum_i->LHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(iAccess));
+    sum_i->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(sumAccess));
+
+    AssignNode* addover = new AssignNode();
+    addover->LHS = shared_ptr<VarBaseNode>(sumAccess);
+    addover->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<BinaryExprNode>(sum_i));
+
+    StmtSeqNode* seq = new StmtSeqNode();
+    seq->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(addover)));
+    seq->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(inc)));
+
+    RepeatNode* rep = new RepeatNode();
+    rep->is_start= false;
+    rep->reverse = false;
+    rep->rep_con = dynamic_pointer_cast<BasicNode>(shared_ptr<BinaryExprNode>(comp));
+    rep->rep_body_node = dynamic_pointer_cast<BasicNode>(shared_ptr<StmtSeqNode>(seq));
+
+    FunctionBodyNode* mainBody = new FunctionBodyNode();
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VariableDefineNode>(nDefine)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VariableDefineNode>(iDefine)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VariableDefineNode>(sumDefine)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(i_init)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(n_init)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(sum_init)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<SysReadNode>(sysRead)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<RepeatNode>(rep)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<SysWriteNode>(sysWrite)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<ReturnNode>(mainRet)));
+
+    FunctionNode* mainNode = new FunctionNode();
+    mainNode->func_declare = shared_ptr<FunDeclareNode>(mainFunc);
+    mainNode->func_body = shared_ptr<FunctionBodyNode>(mainBody);
+    // Main End
+
+    Root->parts.push_back(shared_ptr<FunctionNode>(mainNode));
+
+    generator(Root);
+}
+
+void test10(){
+    gene_init("test");
+    ProgramNode* Root = new ProgramNode();
+
+    VariableDefineNode* iDefine = new VariableDefineNode();
+    iDefine->name="i";
+    iDefine->type="integer";
+    iDefine->is_array = false;
+    iDefine->array_length = 0;
+
+    VariableDefineNode* nDefine = new VariableDefineNode();
+    nDefine->name="n";
+    nDefine->type="integer";
+    nDefine->is_array = false;
+    nDefine->array_length = 0;
+
+    VariableDefineNode* sumDefine = new VariableDefineNode();
+    sumDefine->name="sum";
+    sumDefine->type="integer";
+    sumDefine->is_array = false;
+    sumDefine->array_length = 0;
+
+    ConstantNode* zero = new ConstantNode();
+    zero->constant_type = IntType;
+    zero->constant_value = ConstantInt::get(IntType, 0);
+
+    ConstantNode* one = new ConstantNode();
+    one->constant_type = IntType;
+    one->constant_value = ConstantInt::get(IntType, 1);
+
+    VarBaseNode* iAccess = new VarBaseNode();
+    iAccess->var_name = "i";
+    iAccess->idx=nullptr;
+    iAccess->nested_var =nullptr;
+    
+    VarBaseNode* sumAccess = new VarBaseNode();
+    sumAccess->var_name = "sum";
+    sumAccess->idx=nullptr;
+    sumAccess->nested_var =nullptr;
+
+    VarBaseNode* nAccess = new VarBaseNode();
+    nAccess->var_name = "n";
+    nAccess->idx=nullptr;
+    nAccess->nested_var =nullptr;
+
+    SysReadNode* sysRead = new SysReadNode();
+    sysRead->has_newline=true;
+    sysRead->args.clear();
+    sysRead->args.push_back(shared_ptr<VarBaseNode>(nAccess));
+
+    AssignNode* i_init = new AssignNode();
+    i_init->LHS = shared_ptr<VarBaseNode>(iAccess);
+    i_init->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<ConstantNode>(zero));
+    
+    AssignNode* n_init = new AssignNode();
+    n_init->LHS = shared_ptr<VarBaseNode>(nAccess);
+    n_init->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<ConstantNode>(zero));
+    
+    AssignNode* sum_init = new AssignNode();
+    sum_init->LHS = shared_ptr<VarBaseNode>(sumAccess);
+    sum_init->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<ConstantNode>(zero));
+
+    // Void Function
+    FunDeclareNode* printDec = new FunDeclareNode();
+    printDec->function_name = "print";
+    printDec->ret_type_name = "void";
+
+
+    SysWriteNode* printI = new SysWriteNode();
+    printI->has_newline = true;
+    printI->args.clear();
+    printI->args.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(iAccess)));
+
+    FunctionBodyNode* printBodyNode = new FunctionBodyNode();
+    printBodyNode->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VariableDefineNode>(iDefine)));
+    printBodyNode->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(i_init)));
+    printBodyNode->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<SysWriteNode>(printI)));
+    printBodyNode->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<ReturnNode>(new ReturnNode())));
+
+    FunctionNode* printFunc = new FunctionNode();
+    printFunc->func_declare = shared_ptr<FunDeclareNode>(printDec);
+    printFunc->func_body = shared_ptr<FunctionBodyNode>(printBodyNode);
+    // Main
+
+    FunDeclareNode* mainFunc = new FunDeclareNode();
+    mainFunc->function_name = "main";
+    mainFunc->ret_type_name = "integer";
+    mainFunc->function_arg_types_names.clear();
+    mainFunc->function_arg_names.clear();
+
+    FunctionCallNode* printCall = new FunctionCallNode();
+    printCall->func_name="print";
+
+    SysWriteNode* sysWrite = new SysWriteNode();
+    sysWrite->has_newline = true;
+    sysWrite->args.clear();
+    sysWrite->args.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(sumAccess)));
+
+    ReturnNode* mainRet = new ReturnNode();
+
+    BinaryExprNode* comp = new BinaryExprNode();
+    comp->expr_op = BinaryOper::GE;
+    comp->LHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(nAccess));
+    comp->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(iAccess));
+
+    BinaryExprNode* addone = new BinaryExprNode();
+    addone->expr_op = BinaryOper::PLUS;
+    addone->LHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(iAccess));
+    addone->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<ConstantNode>(one));
+
+    AssignNode* inc = new AssignNode();
+    inc->LHS = shared_ptr<VarBaseNode>(iAccess);
+    inc->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<BinaryExprNode>(addone));
+    
+    BinaryExprNode* sum_i = new BinaryExprNode();
+    sum_i->expr_op = BinaryOper::PLUS;
+    sum_i->LHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(iAccess));
+    sum_i->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(sumAccess));
+
+    AssignNode* addover = new AssignNode();
+    addover->LHS = shared_ptr<VarBaseNode>(sumAccess);
+    addover->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<BinaryExprNode>(sum_i));
+
+    StmtSeqNode* seq = new StmtSeqNode();
+    seq->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(addover)));
+    seq->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(inc)));
+
+    RepeatNode* rep = new RepeatNode();
+    rep->is_start= false;
+    rep->reverse = false;
+    rep->rep_con = dynamic_pointer_cast<BasicNode>(shared_ptr<BinaryExprNode>(comp));
+    rep->rep_body_node = dynamic_pointer_cast<BasicNode>(shared_ptr<StmtSeqNode>(seq));
+
+    FunctionBodyNode* mainBody = new FunctionBodyNode();
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<FunctionCallNode>(printCall)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VariableDefineNode>(nDefine)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VariableDefineNode>(iDefine)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VariableDefineNode>(sumDefine)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(i_init)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(n_init)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(sum_init)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<SysReadNode>(sysRead)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<RepeatNode>(rep)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<SysWriteNode>(sysWrite)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<ReturnNode>(mainRet)));
+
+    FunctionNode* mainNode = new FunctionNode();
+    mainNode->func_declare = shared_ptr<FunDeclareNode>(mainFunc);
+    mainNode->func_body = shared_ptr<FunctionBodyNode>(mainBody);
+    // Main End
+
+    Root->parts.push_back(shared_ptr<FunctionNode>(printFunc));
+    Root->parts.push_back(shared_ptr<FunctionNode>(mainNode));
+
+    generator(Root);
+}
 
 int main()
 {
@@ -766,11 +1052,16 @@ int main()
         // test5(); // Variable Index
         // test6(); // Local Variable
         // test7(); // Local Var + Function Call
-        test8(); // If Condition
+        // test8(); // If Condition
+        // test9(); // Loop sum 1..n
+        test10(); // Void Function Call
+        // All Test Passed
     } catch (char const * s){
         cout<<s<<endl;
     } catch (string s){
         cout<<s<<endl;
+    } catch (IRBuilderMeesage * err){
+        cout << err->message() << endl;
     }
     return 0;
 }
