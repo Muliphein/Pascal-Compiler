@@ -110,7 +110,6 @@ namespace SPLAST
 	class NameASTN;
 	class RoutineASTN;
 	class RoutineHeadASTN;
-	class RoutineBodyASTN;
 	class ConstPartASTN;
 	class TypePartASTN;
 	class VarPartASTN;
@@ -178,11 +177,11 @@ namespace SPLAST
 	// sub_routine -> routine_head routine_body
 	class RoutineASTN : public ASTNode{
 		RoutineHeadASTN* _routineHeadASTN;
-		RoutineBodyASTN* _routineBodyASTN;
+		StmtListASTN* _routineBodyASTN;
 	public:
-		RoutineASTN(RoutineHeadASTN* routineHeadASTN, RoutineBodyASTN* routineBodyASTN);
+		RoutineASTN(RoutineHeadASTN* routineHeadASTN, StmtListASTN* routineBodyASTN);
 		RoutineHeadASTN* getRoutineHeadASTN() const;
-		RoutineBodyASTN* getRoutineBodyASTN() const;
+		StmtListASTN* getRoutineBodyASTN() const;
 	};
 
 	// routine_head -> const_part type_part var_part routine_part
@@ -215,11 +214,11 @@ namespace SPLAST
 
 	// const_expr -> NAME (EQUAL) const_value (SEMI)
 	class ConstExprASTN : public ASTNode {
-		NameASTN* _nameASTN;
+		std::string _name;
 		ConstValueASTN* _constValueASTN;
 	public:
-		ConstExprASTN(NameASTN* nameASTN, ConstValueASTN* constValueASTN);
-		NameASTN* getNameASTN() const;
+		ConstExprASTN(std::string name, ConstValueASTN* constValueASTN);
+		std::string getName() const;
 		ConstValueASTN* getConstValueASTN() const;
 	};
 
@@ -238,6 +237,8 @@ namespace SPLAST
 		ConstValueASTN(char value);
 		ConstValueASTN(bool value);
 		ConstValueASTN(double value);
+		ConstValueASTN* Minus() const;
+		ConstValueASTN* Not() const;
 		SPLVarType getType() const;
 		void* getValue() const;
 	};
@@ -287,7 +288,7 @@ namespace SPLAST
 		TypeDeclASTN(TypeDeclASTN* typeDefASTN);
 		TypeDeclASTN(SPLVarType type);
 		TypeDeclASTN(std::string userType);
-		TypeDeclASTN(std::vector<std::string> enumType);
+		TypeDeclASTN(NameListASTN* enumType);
 		TypeDeclASTN(ConstValueASTN* rangeStartVal, ConstValueASTN* rangeEndVal);
 		TypeDeclASTN(std::string rangeStartName, std::string rangeEndName);
 		TypeDeclASTN(TypeDeclASTN* arrayRange, TypeDeclASTN* arrayType);
@@ -343,6 +344,7 @@ namespace SPLAST
 	public:
 		VarPartASTN();
 		VarPartASTN(VarDeclASTN* varDeclASTN);
+		VarPartASTN(VarPartASTN* varPartASTN);
 		VarPartASTN(VarPartASTN* varPartASTN, VarDeclASTN* varDeclASTN);
 		size_t getVarDeclNum() const;
 		std::vector<VarDeclASTN*> getVarDeclList() const;
@@ -382,13 +384,13 @@ namespace SPLAST
 	};
 
 	// function_decl -> (FUNCTION) NAME parameters (COLON) simple_type_decl (SEMI) sub_routine (SEMI)
-	class FunctionDeclASTN : public ASTNode {
+	class FuncDeclASTN : public ASTNode {
 		std::string _name;
 		ParaASTN* _paraASTN;
 		TypeDeclASTN* _typeDeclASTN;
 		RoutineASTN* _subroutineASTN;
 	public:
-		FunctionDeclASTN(std::string name, ParaASTN* paraASTN, TypeDeclASTN* typeDeclASTN, RoutineASTN* subroutineASTN);
+		FuncDeclASTN(std::string name, ParaASTN* paraASTN, TypeDeclASTN* typeDeclASTN, RoutineASTN* subroutineASTN);
 		std::string getName() const;
 		ParaASTN* getParaASTN() const;
 		TypeDeclASTN* getTypeDeclASTN() const;
@@ -396,12 +398,12 @@ namespace SPLAST
 	};
 
 	// procedure_decl -> (PROCEDURE) NAME parameters (SEMI) sub_routine (SEMI)
-	class ProcedureDeclASTN : public ASTNode {
+	class ProcDeclASTN : public ASTNode {
 		std::string _name;
 		ParaASTN* _paraASTN;
 		RoutineASTN* _subroutineASTN;
 	public:
-		ProcedureDeclASTN(std::string name, ParaASTN* paraASTN, RoutineASTN* subroutineASTN);
+		ProcDeclASTN(std::string name, ParaASTN* paraASTN, RoutineASTN* subroutineASTN);
 		std::string getName() const;
 		ParaASTN* getParaASTN() const;
 		RoutineASTN* getSubroutineASTN() const;
@@ -440,6 +442,7 @@ namespace SPLAST
 	class StmtListASTN : public ASTNode {
 		std::vector<StmtASTN*> _stmtList;
 	public:
+		StmtListASTN();
 		StmtListASTN(StmtListASTN* stmtListASTN);
 		StmtListASTN(StmtListASTN* stmtListASTN, StmtASTN* stmtASTN);
 		size_t getStmtNum() const;
@@ -504,9 +507,9 @@ namespace SPLAST
 		ExprASTN* _expr;
 		ExprASTN* _arrayIdx;
 	public:
-		AssignStmtASTN(std::string name, ExprASTN* expr);
-		AssignStmtASTN(std::string name, ExprASTN* arrayIdx, ExprASTN* expr);
-		AssignStmtASTN(std::string name, std::string memberName, ExprASTN* expr);
+		AssignStmtASTN(NameASTN* name, ExprASTN* expr);
+		AssignStmtASTN(NameASTN* name, ExprASTN* arrayIdx, ExprASTN* expr);
+		AssignStmtASTN(NameASTN* name, NameASTN* memberName, ExprASTN* expr);
 		SPLAssignType getType() const;
 		std::string getName() const;
 		std::string getMemName() const;
@@ -524,8 +527,8 @@ namespace SPLAST
 		ExprListASTN* _argsList;
 		FactorASTN* _readArgs;
 	public:
-		ProcStmtASTN(std::string name);
-		ProcStmtASTN(std::string name, ExprListASTN* argsList);
+		ProcStmtASTN(NameASTN* name);
+		ProcStmtASTN(NameASTN* name, ExprListASTN* argsList);
 		ProcStmtASTN(SPLProcType type, ExprListASTN* argsList);
 		ProcStmtASTN(FactorASTN* readArgs);
 		SPLProcType getType() const;
@@ -582,12 +585,14 @@ namespace SPLAST
 		std::string _name;
 		ExprASTN* _start;
 		ExprASTN* _end;
+		StmtASTN* _stmt;
 		bool _dir = POS;
 	public:
-		ForStmtASTN(std::string name, ExprASTN* start, ExprASTN* end, bool dir = POS);
+		ForStmtASTN(NameASTN* name, ExprASTN* start, ExprASTN* end, StmtASTN* stmt, bool dir = POS);
 		std::string getName() const;
 		ExprASTN* getStart() const;
 		ExprASTN* getEnd() const;
+		StmtASTN* getStmt() const;
 		bool getDir() const;
 	};
 
@@ -618,7 +623,7 @@ namespace SPLAST
 		StmtASTN* _stmt;
 	public:
 		CaseExprASTN(ConstValueASTN* constVal, StmtASTN* stmt);
-		CaseExprASTN(std::string name, StmtASTN* stmt);
+		CaseExprASTN(NameASTN* name, StmtASTN* stmt);
 		bool getType() const;
 		ConstValueASTN* getConstVal() const;
 		std::string getName() const;
@@ -668,7 +673,7 @@ namespace SPLAST
 	// expr -> expr PLUS term
 	// expr -> expr MINUS term
 	// expr -> expr OR term
-	// term
+	// expr -> term
 	class SExprASTN : public ASTNode {
 		std::vector<TermASTN*> _termList;
 		std::vector<SPLSExprOp> _opList;
@@ -729,8 +734,8 @@ namespace SPLAST
 		FactorASTN(ConstValueASTN* constVal);
 		FactorASTN(ExprASTN* expr);
 		FactorASTN(FactorASTN* factor, SPLFactorType factorType);
-		FactorASTN(std::string name, ExprASTN* idx);
-		FactorASTN(std::string name, std::string memName);
+		FactorASTN(NameASTN* name, ExprASTN* idx);
+		FactorASTN(NameASTN* name, NameASTN* memName);
 		SPLVarType getType() const;
 		SPLFuncType getFuncType() const;
 		SPLFactorType getFactorType() const;
@@ -742,4 +747,5 @@ namespace SPLAST
 		FactorASTN* getFactor() const;
 	};
 
+	// SYS_FUNCT -> ABS | CHR | ODD | ORD | PRED | SQR | SQRT | SUCC (type : SPLFuncType)
 }

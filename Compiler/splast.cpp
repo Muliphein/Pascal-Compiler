@@ -1,5 +1,7 @@
 #include "splast.h"
 
+SPLAST::ProgramASTN* ASTRoot;
+
 SPLAST::ProgramASTN::ProgramASTN(ProgramHeadASTN * programHeadASTN, RoutineASTN * routineASTN) : _programHeadASTN(programHeadASTN), _routineASTN(routineASTN)
 {
 }
@@ -23,7 +25,7 @@ const std::string SPLAST::NameASTN::getName()
 	return _name;
 }
 
-SPLAST::RoutineASTN::RoutineASTN(RoutineHeadASTN * routineHeadASTN, RoutineBodyASTN * routineBodyASTN) : _routineHeadASTN(routineHeadASTN), _routineBodyASTN(routineBodyASTN)
+SPLAST::RoutineASTN::RoutineASTN(RoutineHeadASTN * routineHeadASTN, StmtListASTN * routineBodyASTN) : _routineHeadASTN(routineHeadASTN), _routineBodyASTN(routineBodyASTN)
 {
 }
 
@@ -32,7 +34,7 @@ SPLAST::RoutineHeadASTN * SPLAST::RoutineASTN::getRoutineHeadASTN() const
 	return _routineHeadASTN;
 }
 
-SPLAST::RoutineBodyASTN * SPLAST::RoutineASTN::getRoutineBodyASTN() const
+SPLAST::StmtListASTN * SPLAST::RoutineASTN::getRoutineBodyASTN() const
 {
 	return _routineBodyASTN;
 }
@@ -95,13 +97,13 @@ SPLAST::ConstExprASTN * SPLAST::ConstPartASTN::getConstExpr(size_t idx) const
 	return _constExprList.at(idx);
 }
 
-SPLAST::ConstExprASTN::ConstExprASTN(NameASTN * nameASTN, ConstValueASTN * constValueASTN) : _nameASTN(nameASTN), _constValueASTN(constValueASTN)
+SPLAST::ConstExprASTN::ConstExprASTN(std::string name, ConstValueASTN * constValueASTN) : _name(name), _constValueASTN(constValueASTN)
 {
 }
 
-SPLAST::NameASTN * SPLAST::ConstExprASTN::getNameASTN() const
+std::string SPLAST::ConstExprASTN::getName() const
 {
-	return _nameASTN;
+	return _name;
 }
 
 SPLAST::ConstValueASTN * SPLAST::ConstExprASTN::getConstValueASTN() const
@@ -123,6 +125,19 @@ SPLAST::ConstValueASTN::ConstValueASTN(bool value) : _type(_BOOL), _boolValue(va
 
 SPLAST::ConstValueASTN::ConstValueASTN(double value) : _type(_DOUBLE), _doubleValue(value)
 {
+}
+
+SPLAST::ConstValueASTN * SPLAST::ConstValueASTN::Minus() const
+{
+	if(_type == _INT)	return new ConstValueASTN(-_intValue);
+	if (_type == _DOUBLE) return new ConstValueASTN(-_doubleValue);
+	return nullptr;
+}
+
+SPLAST::ConstValueASTN * SPLAST::ConstValueASTN::Not() const
+{
+	if (_type == _BOOL) return new ConstValueASTN(!_boolValue);
+	return nullptr;
 }
 
 SPLVarType SPLAST::ConstValueASTN::getType() const
@@ -190,7 +205,7 @@ SPLAST::TypeDeclASTN::TypeDeclASTN(std::string userType) : _type(_USERTYPE), _us
 {
 }
 
-SPLAST::TypeDeclASTN::TypeDeclASTN(std::vector<std::string> enumType) : _type(_ENUM), _enumType(enumType)
+SPLAST::TypeDeclASTN::TypeDeclASTN(NameListASTN* enumType) : _type(_ENUM), _enumType(enumType->getNameList())
 {
 }
 
@@ -351,6 +366,10 @@ SPLAST::VarPartASTN::VarPartASTN(VarDeclASTN * varDeclASTN)
 	_varDeclList.push_back(varDeclASTN);
 }
 
+SPLAST::VarPartASTN::VarPartASTN(VarPartASTN * varPartASTN) : _varDeclList(varPartASTN->getVarDeclList())
+{
+}
+
 SPLAST::VarPartASTN::VarPartASTN(VarPartASTN * varPartASTN, VarDeclASTN * varDeclASTN) : _varDeclList(varPartASTN->getVarDeclList())
 {
 	_varDeclList.push_back(varDeclASTN);
@@ -452,47 +471,47 @@ SPLAST::ProcDeclASTN * SPLAST::RoutinePartASTN::getProcDecl(size_t idx) const
 	return _procDeclList.at(idx);
 }
 
-SPLAST::FunctionDeclASTN::FunctionDeclASTN(std::string name, ParaASTN * paraASTN, TypeDeclASTN * typeDeclASTN, RoutineASTN * subroutineASTN) : _name(name),
+SPLAST::FuncDeclASTN::FuncDeclASTN(std::string name, ParaASTN * paraASTN, TypeDeclASTN * typeDeclASTN, RoutineASTN * subroutineASTN) : _name(name),
 	_paraASTN(paraASTN), _typeDeclASTN(typeDeclASTN), _subroutineASTN(subroutineASTN)
 {
 }
 
-std::string SPLAST::FunctionDeclASTN::getName() const
+std::string SPLAST::FuncDeclASTN::getName() const
 {
 	return _name;
 }
 
-SPLAST::ParaASTN * SPLAST::FunctionDeclASTN::getParaASTN() const
+SPLAST::ParaASTN * SPLAST::FuncDeclASTN::getParaASTN() const
 {
 	return _paraASTN;
 }
 
-SPLAST::TypeDeclASTN * SPLAST::FunctionDeclASTN::getTypeDeclASTN() const
+SPLAST::TypeDeclASTN * SPLAST::FuncDeclASTN::getTypeDeclASTN() const
 {
 	return _typeDeclASTN;
 }
 
-SPLAST::RoutineASTN * SPLAST::FunctionDeclASTN::getSubroutineASTN() const
+SPLAST::RoutineASTN * SPLAST::FuncDeclASTN::getSubroutineASTN() const
 {
 	return _subroutineASTN;
 }
 
-SPLAST::ProcedureDeclASTN::ProcedureDeclASTN(std::string name, ParaASTN * paraASTN, RoutineASTN * subroutineASTN) : _name(name),
+SPLAST::ProcDeclASTN::ProcDeclASTN(std::string name, ParaASTN * paraASTN, RoutineASTN * subroutineASTN) : _name(name),
 	_paraASTN(paraASTN), _subroutineASTN(subroutineASTN)
 {
 }
 
-std::string SPLAST::ProcedureDeclASTN::getName() const
+std::string SPLAST::ProcDeclASTN::getName() const
 {
 	return _name;
 }
 
-SPLAST::ParaASTN * SPLAST::ProcedureDeclASTN::getParaASTN() const
+SPLAST::ParaASTN * SPLAST::ProcDeclASTN::getParaASTN() const
 {
 	return _paraASTN;
 }
 
-SPLAST::RoutineASTN * SPLAST::ProcedureDeclASTN::getSubroutineASTN() const
+SPLAST::RoutineASTN * SPLAST::ProcDeclASTN::getSubroutineASTN() const
 {
 	return _subroutineASTN;
 }
@@ -549,6 +568,10 @@ SPLAST::NameListASTN * SPLAST::ParaTypeListASTN::getNameListASTN() const
 SPLAST::TypeDeclASTN * SPLAST::ParaTypeListASTN::getTypeDeclASTN() const
 {
 	return _typeDeclASTN;
+}
+
+SPLAST::StmtListASTN::StmtListASTN()
+{
 }
 
 SPLAST::StmtListASTN::StmtListASTN(StmtListASTN * stmtListASTN) : _stmtList(stmtListASTN->getStmtList())
@@ -679,17 +702,17 @@ SPLAST::GotoStmtASTN * SPLAST::StmtASTN::getGotoStmt() const
 	return _gotoStmt;
 }
 
-SPLAST::AssignStmtASTN::AssignStmtASTN(std::string name, ExprASTN * expr) : _type(_VARIABLE), _name(name), _expr(expr)
+SPLAST::AssignStmtASTN::AssignStmtASTN(NameASTN* name, ExprASTN * expr) : _type(_VARIABLE), _name(name->getName()), _expr(expr)
 {
 }
 
-SPLAST::AssignStmtASTN::AssignStmtASTN(std::string name, ExprASTN * arrayIdx, ExprASTN * expr) :
-	_type(_ARRAYIDX), _name(name), _arrayIdx(arrayIdx), _expr(expr)
+SPLAST::AssignStmtASTN::AssignStmtASTN(NameASTN* name, ExprASTN * arrayIdx, ExprASTN * expr) :
+	_type(_ARRAYIDX), _name(name->getName()), _arrayIdx(arrayIdx), _expr(expr)
 {
 }
 
-SPLAST::AssignStmtASTN::AssignStmtASTN(std::string name, std::string memberName, ExprASTN * expr) : 
-	_type(_CLASSMEM), _name(name), _memberName(memberName), _expr(expr)
+SPLAST::AssignStmtASTN::AssignStmtASTN(NameASTN* name, NameASTN* memberName, ExprASTN * expr) :
+	_type(_CLASSMEM), _name(name->getName()), _memberName(memberName->getName()), _expr(expr)
 {
 }
 
@@ -718,12 +741,12 @@ SPLAST::ExprASTN * SPLAST::AssignStmtASTN::getArrayIdx() const
 	return _arrayIdx;
 }
 
-SPLAST::ProcStmtASTN::ProcStmtASTN(std::string name) : _type(_USERPROC), _funcName(name)
+SPLAST::ProcStmtASTN::ProcStmtASTN(NameASTN* name) : _type(_USERPROC), _funcName(name->getName())
 {
 }
 
-SPLAST::ProcStmtASTN::ProcStmtASTN(std::string name, ExprListASTN * argsList) :
-	_type(_USERPROC), _funcName(name), _argsList(argsList)
+SPLAST::ProcStmtASTN::ProcStmtASTN(NameASTN* name, ExprListASTN * argsList) :
+	_type(_USERPROC), _funcName(name->getName()), _argsList(argsList)
 {
 }
 
@@ -818,8 +841,8 @@ SPLAST::StmtASTN * SPLAST::WhileStmtASTN::getStmt() const
 	return _stmt;
 }
 
-SPLAST::ForStmtASTN::ForStmtASTN(std::string name, ExprASTN * start, ExprASTN * end, bool dir) :
-	_name(name), _start(start), _end(end), _dir(dir)
+SPLAST::ForStmtASTN::ForStmtASTN(NameASTN* name, ExprASTN * start, ExprASTN * end, StmtASTN* stmt, bool dir) :
+	_name(name->getName()), _start(start), _end(end), _stmt(stmt), _dir(dir)
 {
 }
 
@@ -836,6 +859,11 @@ SPLAST::ExprASTN * SPLAST::ForStmtASTN::getStart() const
 SPLAST::ExprASTN * SPLAST::ForStmtASTN::getEnd() const
 {
 	return _end;
+}
+
+SPLAST::StmtASTN * SPLAST::ForStmtASTN::getStmt() const
+{
+	return _stmt;
 }
 
 bool SPLAST::ForStmtASTN::getDir() const
@@ -884,8 +912,8 @@ SPLAST::CaseExprASTN::CaseExprASTN(ConstValueASTN * constVal, StmtASTN * stmt) :
 {
 }
 
-SPLAST::CaseExprASTN::CaseExprASTN(std::string name, StmtASTN * stmt) : _type(CASE_VAR),
-	_name(name), _stmt(stmt)
+SPLAST::CaseExprASTN::CaseExprASTN(NameASTN* name, StmtASTN * stmt) : _type(CASE_VAR),
+	_name(name->getName()), _stmt(stmt)
 {
 }
 
@@ -1085,11 +1113,11 @@ SPLAST::FactorASTN::FactorASTN(FactorASTN * factor, SPLFactorType factorType) : 
 {
 }
 
-SPLAST::FactorASTN::FactorASTN(std::string name, ExprASTN * idx) : _type(_USERTYPE), _factorType(_INDEX), _name(name), _expr(idx)
+SPLAST::FactorASTN::FactorASTN(NameASTN* name, ExprASTN * idx) : _type(_USERTYPE), _factorType(_INDEX), _name(name->getName()), _expr(idx)
 {
 }
 
-SPLAST::FactorASTN::FactorASTN(std::string name, std::string memName) : _type(_USERTYPE), _factorType(_MEMBER), _name(name), _memName(memName)
+SPLAST::FactorASTN::FactorASTN(NameASTN* name, NameASTN* memName) : _type(_USERTYPE), _factorType(_MEMBER), _name(name->getName()), _memName(memName->getName())
 {
 }
 

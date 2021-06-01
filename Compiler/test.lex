@@ -3,7 +3,7 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	void yyerror(const char *);
-	bool testmode = true;
+	bool testmode = false;
 	bool displaydelim = false;
 %}
 
