@@ -14,15 +14,6 @@ SPLAST::RoutineASTN * SPLAST::ProgramASTN::getRoutineASTN() const
 	return _routineASTN;
 }
 
-SPLAST::ProgramHeadASTN::ProgramHeadASTN(NameASTN * nameASTN) : _nameASTN(nameASTN)
-{
-}
-
-SPLAST::NameASTN * SPLAST::ProgramHeadASTN::getNameASTN() const
-{
-	return _nameASTN;
-}
-
 SPLAST::NameASTN::NameASTN(std::string name) : _name(name)
 {
 }
@@ -75,8 +66,18 @@ SPLAST::ConstPartASTN::ConstPartASTN()
 {
 }
 
-SPLAST::ConstPartASTN::ConstPartASTN(std::vector<ConstExprASTN*> constExprList) : _constExprList(constExprList)
+SPLAST::ConstPartASTN::ConstPartASTN(ConstPartASTN * constPart) : _constExprList(constPart->getConstExprList())
 {
+}
+
+SPLAST::ConstPartASTN::ConstPartASTN(ConstPartASTN * constPart, ConstExprASTN * constExpr) : _constExprList(constPart->getConstExprList())
+{
+	_constExprList.push_back(constExpr);
+}
+
+SPLAST::ConstPartASTN::ConstPartASTN(ConstExprASTN * constExpr)
+{
+	_constExprList.push_back(constExpr);
 }
 
 size_t SPLAST::ConstPartASTN::getConstExprNum() const
@@ -1137,7 +1138,11 @@ SPLAST::FactorASTN * SPLAST::FactorASTN::getFactor() const
 	return _factor;
 }
 
-int main()
+SPLAST::ProgramHeadASTN::ProgramHeadASTN(NameASTN * nameASTN) : _name(nameASTN->getName())
 {
+}
 
+std::string SPLAST::ProgramHeadASTN::getName() const
+{
+	return _name;
 }

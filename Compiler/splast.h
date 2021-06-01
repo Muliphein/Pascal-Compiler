@@ -160,10 +160,10 @@ namespace SPLAST
 
 	// program_head -> (program) id (semi)
 	class ProgramHeadASTN : public ASTNode {
-		NameASTN* _nameASTN;
+		std::string _name;
 	public:
 		ProgramHeadASTN(NameASTN* nameASTN);
-		NameASTN* getNameASTN() const;
+		std::string getName() const;
 	};
 
 	// id -> name
@@ -205,13 +205,15 @@ namespace SPLAST
 		std::vector<ConstExprASTN*> _constExprList;
 	public:
 		ConstPartASTN();
-		ConstPartASTN(std::vector<ConstExprASTN*> constExprList);
+		ConstPartASTN(ConstPartASTN* constPart);
+		ConstPartASTN(ConstPartASTN* constPart, ConstExprASTN* constExpr);
+		ConstPartASTN(ConstExprASTN* constExpr);
 		size_t getConstExprNum() const;
 		std::vector<ConstExprASTN*> getConstExprList() const;
 		ConstExprASTN* getConstExpr(size_t idx) const;
 	};
 
-	// const_expr -> NAME EQUAL const_value
+	// const_expr -> NAME (EQUAL) const_value (SEMI)
 	class ConstExprASTN : public ASTNode {
 		NameASTN* _nameASTN;
 		ConstValueASTN* _constValueASTN;
@@ -254,7 +256,7 @@ namespace SPLAST
 		TypeDefASTN* getTypeDef(size_t idx) const;
 	};
 
-	// type_definition -> NAME (EQUAL) type_decl SEMI
+	// type_definition -> NAME (EQUAL) type_decl (SEMI)
 	class TypeDefASTN : public ASTNode {
 		std::string _name;
 		TypeDeclASTN* _typeDeclASTN;
@@ -269,7 +271,7 @@ namespace SPLAST
 	// simple_type_decl -> (MINUS) const_value DOTDOT (MINUS) const_value (_rangeStartVal, _rangeEndVal)
 	// simple_type_decl -> NAME (DOTDOT) NAME (_rangeStartName, _rangeEndName)
 	// array_type_decl -> (ARRAY) (LB) simple_type_decl (RB) (OF) type_decl (_arrayRange, _arrayType)
-	// reccord_type_decl -> (RECORD) field_decl_list (END) (_fieldListASTN)
+	// record_type_decl -> (RECORD) field_decl_list (END) (_fieldListASTN)
 	class TypeDeclASTN : public ASTNode {
 		SPLVarType _type;
 		std::string _userType;
