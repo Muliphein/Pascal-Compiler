@@ -235,19 +235,32 @@ ASTNodes::CodeGenResult* ASTNodes::RepeatNode::code_gen(){
 
 ASTNodes::CodeGenResult* ASTNodes::IfElseNode::code_gen(){
     Function* func = module->getFunction(now_function);
-    BasicBlock * then_block = BasicBlock::Create(context, "then_block", func);
-    BasicBlock * else_block = BasicBlock::Create(context, "else_block", func);
-    BasicBlock * end_block  = BasicBlock::Create(context, "end_block" , func);
-    builder.CreateCondBr(this->cond->code_gen()->get_value(), then_block, else_block);
-    
-    builder.SetInsertPoint(then_block);
-    this->then_body->code_gen();
-    builder.CreateBr(end_block);
+    if (this->else_body == nullptr){
+        BasicBlock * then_block = BasicBlock::Create(context, "then_block", func);
+        BasicBlock * end_block  = BasicBlock::Create(context, "end_block" , func);
+        builder.CreateCondBr(this->cond->code_gen()->get_value(), then_block, end_block);
 
-    builder.SetInsertPoint(else_block);
-    this->else_body->code_gen();
-    builder.CreateBr(end_block);
+        builder.SetInsertPoint(then_block);
+        this->then_body->code_gen();
+        builder.CreateBr(end_block);
 
-    builder.SetInsertPoint(end_block);
-    return nullptr;
+        builder.SetInsertPoint(end_block);
+        return nullptr;
+    } else {
+        BasicBlock * then_block = BasicBlock::Create(context, "then_block", func);
+        BasicBlock * else_block = BasicBlock::Create(context, "else_block", func);
+        BasicBlock * end_block  = BasicBlock::Create(context, "end_block" , func);
+        builder.CreateCondBr(this->cond->code_gen()->get_value(), then_block, else_block);
+        
+        builder.SetInsertPoint(then_block);
+        this->then_body->code_gen();
+        builder.CreateBr(end_block);
+
+        builder.SetInsertPoint(else_block);
+        this->else_body->code_gen();
+        builder.CreateBr(end_block);
+
+        builder.SetInsertPoint(end_block);
+        return nullptr;
+    }
 }
