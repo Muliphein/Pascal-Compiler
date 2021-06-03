@@ -2,6 +2,7 @@
 #include<stdio.h>
 #include<math.h>
 #include<string>
+#include"GraphGenerator.h"
 extern FILE* yyin;
 int yylex();
 void yyerror(const char *);
@@ -383,7 +384,9 @@ int main(int argc, char **argv)
         }
     }
 	yyparse();
-	printf("haoye! %p\n", ASTRoot);
+	printf("Successfully Parsed ! ASTRoot = %p\n", ASTRoot);
+	Visitor visitor;
+	visitor.VisitProgramASTN(ASTRoot);
 	return 0;
 }
 void yyerror(const char * msg)

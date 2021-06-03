@@ -453,7 +453,7 @@ size_t SPLAST::RoutinePartASTN::getProcDeclNum() const
 
 size_t SPLAST::RoutinePartASTN::getTotalDeclNum() const
 {
-	return _funcDeclList.size() + _procDeclList.size();
+	return _idxList.size();
 }
 
 int SPLAST::RoutinePartASTN::getIdx(size_t idx) const
@@ -741,12 +741,12 @@ SPLAST::ExprASTN * SPLAST::AssignStmtASTN::getArrayIdx() const
 	return _arrayIdx;
 }
 
-SPLAST::ProcStmtASTN::ProcStmtASTN(NameASTN* name) : _type(_USERPROC), _funcName(name->getName())
+SPLAST::ProcStmtASTN::ProcStmtASTN(NameASTN* name) : _type(_USERPROC), _procName(name->getName())
 {
 }
 
 SPLAST::ProcStmtASTN::ProcStmtASTN(NameASTN* name, ExprListASTN * argsList) :
-	_type(_USERPROC), _funcName(name->getName()), _argsList(argsList)
+	_type(_USERPROC), _procName(name->getName()), _argsList(argsList)
 {
 }
 
@@ -763,9 +763,9 @@ SPLProcType SPLAST::ProcStmtASTN::getType() const
 	return _type;
 }
 
-std::string SPLAST::ProcStmtASTN::getFuncName() const
+std::string SPLAST::ProcStmtASTN::getProcName() const
 {
-	return _funcName;
+	return _procName;
 }
 
 SPLAST::ExprListASTN * SPLAST::ProcStmtASTN::getArgsList() const

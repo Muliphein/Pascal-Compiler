@@ -77,6 +77,7 @@
 ":="		{if(testmode) printf("ASSIGN ");	return ASSIGN;}
 ":"			{if(testmode) printf("COLON "); return COLON;}
 ";"			{if(testmode) printf("SEMI ");	return SEMI;}
+"%"			{if(testmode) printf("MOD ");	return MOD;}
 
 " "|"\n"|"\t"	{if(testmode&&displaydelim) printf("DELIM ");}
 [0-9]*\.[0-9]+([eE][-+]?[0-9]+)? {if(testmode) printf("double_val "); yylval.double_val = (double)atof(yytext);	return D_VAL;}

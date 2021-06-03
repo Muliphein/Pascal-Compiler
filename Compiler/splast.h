@@ -1,3 +1,4 @@
+#pragma once
 #include<string>
 #include<memory>
 #include<vector>
@@ -278,7 +279,7 @@ namespace SPLAST
 		std::string _userType;
 		std::string _rangeStartName;
 		std::string _rangeEndName;
-		ConstValueASTN* _rangeStartVal;
+		ConstValueASTN* _rangeStartVal = nullptr;
 		ConstValueASTN* _rangeEndVal;
 		std::vector<std::string> _enumType;
 		TypeDeclASTN* _arrayRange; // valid : _RANGE, _ENUM
@@ -523,8 +524,8 @@ namespace SPLAST
 	// proc_stmt -> READ (LP) factor (RP)
 	class ProcStmtASTN : public ASTNode{
 		SPLProcType _type;
-		std::string _funcName;
-		ExprListASTN* _argsList;
+		std::string _procName;
+		ExprListASTN* _argsList = nullptr;
 		FactorASTN* _readArgs;
 	public:
 		ProcStmtASTN(NameASTN* name);
@@ -532,7 +533,7 @@ namespace SPLAST
 		ProcStmtASTN(SPLProcType type, ExprListASTN* argsList);
 		ProcStmtASTN(FactorASTN* readArgs);
 		SPLProcType getType() const;
-		std::string getFuncName() const;
+		std::string getProcName() const;
 		ExprListASTN* getArgsList() const;
 		FactorASTN* getReadArgs() const;
 	};
@@ -706,22 +707,22 @@ namespace SPLAST
 		SPLTermOp getOp(size_t idx) const;
 	};
 
-	// factor -> NAME
-	// factor -> NAME (LP) expression_list (RP)
-	// factor -> SYS_FUNCT
-	// factor -> SYS_FUNCT (LP) expression_list (RP)
-	// factor -> const_value
-	// factor -> (LP) expression (RP)
-	// factor -> NOT factor
-	// factor -> MINUS factor (Using _NEG)
-	// factor -> ID (LB) expression (RB)
-	// factor -> ID (DOT) ID
+	// factor -> NAME  (fType : _USERVAL) 
+	// factor -> NAME (LP) expression_list (RP) (fType : _RET)
+	// factor -> SYS_FUNCT (fType : _SYSFUNCT)
+	// factor -> SYS_FUNCT (LP) expression_list (RP) (fType : _RET)
+	// factor -> const_value (fType : _CONST)
+	// factor -> (LP) expression (RP) (fType : _EXPR)
+	// factor -> NOT factor (fType : _NOT)
+	// factor -> MINUS factor (fType : _NEG)
+	// factor -> ID (LB) expression (RB) (fType : _INDEX)
+	// factor -> ID (DOT) ID (fType : _MEMBER)
 	class FactorASTN : public ASTNode {
 		SPLVarType _type;
-		SPLFuncType _funcType;
+		SPLFuncType _funcType = _ERRORFUNC;
 		SPLFactorType _factorType;
 		std::string _name;
-		ExprListASTN* _argsList;
+		ExprListASTN* _argsList = nullptr;
 		ConstValueASTN* _constVal;
 		ExprASTN* _expr;
 		std::string _memName;
