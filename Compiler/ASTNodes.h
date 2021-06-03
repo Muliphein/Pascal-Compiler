@@ -173,6 +173,7 @@ namespace ASTNodes{
         std::string ret_type_name;
         std::vector<std::string> function_arg_types_names;
         std::vector<std::string> function_arg_names; // necessary
+        std::vector<bool> function_arg_var;
         FunDeclareNode(){};
         CodeGenResult* code_gen() override;
     };

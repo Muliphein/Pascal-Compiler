@@ -153,12 +153,15 @@ ASTNodes::CodeGenResult* ASTNodes::VarAccessNode::code_gen(){
 
 ASTNodes::CodeGenResult* ASTNodes::VarBaseNode::code_gen(){
     int now_size = idx_set.size();
+    // std::cout<<"Seek "<<this->var_name<<" Start"<<std::endl;
     if (this->nested_var == nullptr){
         for (int stage_pointer=stage; stage_pointer>=0; --stage_pointer){
             if (table_mem[stage_pointer].count(this->var_name)>0){
                 Value* pointer = table_mem[stage_pointer][this->var_name];
                 auto _type = table_type[stage_pointer][this->var_name];
                 Value* _mem = pointer;
+                
+                // std::cout<<"Get Memory "<<std::endl;
                 if (table_array[stage_pointer][this->var_name]){ // array Var
                     Value* array_idx = this->idx->code_gen()->get_value();
                     idx_set.push_back(builder.getInt64(0));
@@ -166,6 +169,7 @@ ASTNodes::CodeGenResult* ASTNodes::VarBaseNode::code_gen(){
                 } else { // Simple Var;
                     idx_set.push_back(builder.getInt64(0));
                 }
+                // std::cout<<"Over Push "<<std::endl;
                 std::vector<Value*> now_set;
                 now_set.clear();
                 for (int i=now_size; i<idx_set.size(); ++i){
@@ -174,7 +178,10 @@ ASTNodes::CodeGenResult* ASTNodes::VarBaseNode::code_gen(){
                 while(idx_set.size()>now_size)
                     idx_set.pop_back();
                 ArrayRef<Value*> idx_ref(now_set);
+                
+                // std::cout<<"Before GEP "<<std::endl;
                 _mem = builder.CreateGEP(_mem, idx_ref);
+                // std::cout<<"Seek "<<this->var_name<<" Over"<<std::endl;
                 return new CodeGenResult(_mem, _type, nullptr);
             }
         }

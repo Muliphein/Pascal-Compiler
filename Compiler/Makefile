@@ -21,3 +21,12 @@ testclean:
 	-rm test.bc
 	-rm test.s
 	-rm test.ll
+
+.PHONY: syntax
+syntax:
+	bison -d test.y
+	flex test.lex
+	clang++ test.tab.c lex.yy.c splast.cpp GraphGenerator.cpp -o main -std=c++11
+	-rm test.tab.c
+	-rm lex.yy.c
+	-rm test.tab.h

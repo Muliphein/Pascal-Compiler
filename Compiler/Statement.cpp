@@ -88,6 +88,7 @@ ASTNodes::CodeGenResult* ASTNodes::AssignNode::code_gen(){
     CodeGenResult* rhs = this->RHS->code_gen();
     CodeGenResult* lhs = this->LHS->code_gen();
     Value* rv = rhs->get_value();
+    // module->print(outs(), nullptr);
     assign_cast(rv, lhs->type);
     builder.CreateStore(rv, lhs->mem);
     return rhs;

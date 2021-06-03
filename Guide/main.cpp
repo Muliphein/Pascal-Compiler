@@ -64,7 +64,7 @@ int main() {
 
     { // Function Declaration
         std::vector<Type*> function_args;
-        function_args.push_back(Type::getInt32Ty(the_context));
+        function_args.push_back(Type::getInt32PtrTy(the_context));
         function_args.push_back(Type::getInt32Ty(the_context));
 
         FunctionType* max_type = FunctionType::get(Type::getInt32Ty(the_context), function_args, false);
@@ -87,24 +87,25 @@ int main() {
         auto arg_it = TheFunction->arg_begin();
         auto arg_a = arg_it++;
         auto arg_b = arg_it++;
-        Value* cmp_value = builder.CreateICmpSGT(arg_a, arg_b);
+        Value* store = builder.CreateStore(ConstantInt::get(Type::getInt32Ty(the_context), 0) ,arg_a);
+        // Value* cmp_value = builder.CreateICmpSGT(arg_a, arg_b);
 
         // Temper Value
-        AllocaInst* var = builder.CreateAlloca(Type::getInt32Ty(the_context), nullptr, "t");
-        auto var_pos = builder.CreateGEP(var, builder.getInt32(0));
-        builder.CreateStore(ConstantInt::get(Type::getInt32Ty(the_context), 5), var_pos);
-        auto temp = builder.CreateLoad(Type::getInt32Ty(the_context), var_pos);
-        auto temp1 = builder.CreateLShr(temp, 2);
-        builder.CreateStore(temp1, var_pos);
+        // AllocaInst* var = builder.CreateAlloca(Type::getInt32Ty(the_context), nullptr, "t");
+        // auto var_pos = builder.CreateGEP(var, builder.getInt32(0));
+        // builder.CreateStore(ConstantInt::get(Type::getInt32Ty(the_context), 5), var_pos);
+        // auto temp = builder.CreateLoad(Type::getInt32Ty(the_context), var_pos);
+        // auto temp1 = builder.CreateLShr(temp, 2);
+        // builder.CreateStore(temp1, var_pos);
 
-        BasicBlock* if_then = BasicBlock::Create(the_context, "if_then", TheFunction);
-        BasicBlock* if_else = BasicBlock::Create(the_context, "if_else", TheFunction);
-        builder.CreateCondBr(cmp_value, if_then, if_else);
-        builder.SetInsertPoint(if_then);
-        builder.CreateRet(arg_a);
-        builder.SetInsertPoint(if_else);
-        auto res = builder.CreateLoad(Type::getInt32Ty(the_context), var);
-        builder.CreateRet(temp);
+        // BasicBlock* if_then = BasicBlock::Create(the_context, "if_then", TheFunction);
+        // BasicBlock* if_else = BasicBlock::Create(the_context, "if_else", TheFunction);
+        // builder.CreateCondBr(cmp_value, if_then, if_else);
+        // builder.SetInsertPoint(if_then);
+        // builder.CreateRet(arg_a);
+        // builder.SetInsertPoint(if_else);
+        // auto res = builder.CreateLoad(Type::getInt32Ty(the_context), var);
+        builder.CreateRet(ConstantInt::get(Type::getInt32Ty(the_context), 0));
     }
 
 
@@ -122,23 +123,21 @@ int main() {
         }
 
         {
+            
             auto a_value = ConstantInt::get(Type::getInt32Ty(the_context), -10);
             auto b_value = ConstantInt::get(Type::getInt32Ty(the_context), 20);
 
+            GlobalVariable *globalVar = new GlobalVariable(*(the_module.get()), Type::getInt32Ty(the_context),  false,
+              GlobalValue::ExternalLinkage, ConstantInt::get(Type::getInt32Ty(the_context), 5), "fuck");
+
             std::vector <Value*> put_args;
-            put_args.push_back(a_value);
+            put_args.push_back(globalVar);
             put_args.push_back(b_value);
 
             ArrayRef <Value*> args_Ref(put_args);
             Function* TheFunction = the_module->getFunction("max");
             Value *ret = builder.CreateCall(TheFunction, args_Ref);
-        }
         
-        {
-            
-            GlobalVariable *globalVar = new GlobalVariable(*(the_module.get()), Type::getInt32Ty(the_context),  false,
-              GlobalValue::ExternalLinkage, ConstantInt::get(Type::getInt32Ty(the_context), 0), "fuck");
-
             char s[16]="%d hello world\n";
             std::vector<llvm::Constant*> values;
             Constant* c = ConstantInt::get(Type::getInt8Ty(the_context), 0);
@@ -148,7 +147,7 @@ int main() {
             GlobalVariable *globalStr = new GlobalVariable(*(the_module.get()), ArrayType::get(Type::getInt8Ty(the_context), 16),  false,
               GlobalValue::ExternalLinkage, init, "fuck_string");
 
-            Function* TheFunction =the_module->getFunction("printf");
+            TheFunction =the_module->getFunction("printf");
             
             auto format = builder.CreateGlobalString("hello!");
             auto format_pos = builder.CreateGEP(format, builder.getInt32(0));

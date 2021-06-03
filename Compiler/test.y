@@ -155,7 +155,7 @@ const_value : const_int_value { $$ = new SPLAST::ConstValueASTN($1); }
 ;
 
 const_int_value : I_VAL { $$ = $1; }
-| MAXINT { $$ = INT_MAX; }
+| MAXINT { $$ = 32767; }
 ;
 
 const_double_value : D_VAL { $$ = $1; }
