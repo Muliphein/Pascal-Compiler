@@ -40,6 +40,8 @@ extern Type* CharType; // 1 byte *
 extern Type* BoolType; // 1 bit *
 extern Type* VoidType; // void * (procedure)
 
+extern std::shared_ptr<Module> module;
+
 enum BinaryOper{
     GE,
     GT,
@@ -84,6 +86,7 @@ namespace ASTNodes{
         Value* get_value(){
             if (value == nullptr){
                 if (mem == nullptr){
+                    module->print(outs(), nullptr);
                     throw("Error : No Value And Mem for Variable, It's Unpossible\n");
                 } else {
                     if (type == nullptr){
@@ -140,6 +143,7 @@ namespace ASTNodes{
         std::string type;
         bool is_array;
         int array_length;
+        int lower_bound;
         std::string name;
         VariableDefineNode(){};
         VariableDefineNode(std::string _type, bool _is_array, int _array_length, std::string _name){
@@ -253,7 +257,8 @@ namespace ASTNodes{
         std::vector<std::string> member_var_name; // a
         std::vector<std::string> member_type_name; // integer
         std::vector<bool> mem_is_array; //false
-        std::vector<int> mem_arrag_length; //0
+        std::vector<int> mem_array_length; //0
+        std::vector<int> mem_array_lower;
         
         RecordTypeDefineNode(){};
         CodeGenResult* code_gen() override;

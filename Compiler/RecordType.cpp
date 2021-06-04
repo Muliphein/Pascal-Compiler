@@ -13,10 +13,12 @@ extern std::map<Type*, Constant*> zero_initial;// Type -> zeroinitial
 extern std::map<std::string, Value*> table_mem[MAX_NESTED];// VarName -> Memory
 extern std::map<std::string, Type*> table_type[MAX_NESTED];// VarName -> Type
 extern std::map<std::string, bool> table_array[MAX_NESTED];// VarName -> Array
+extern std::map<std::string, int> table_array_lower[MAX_NESTED];// VarName -> LowerBound
 
 extern std::map<Type*, std::vector<Type*> > record_type_list;// StructType -> Member_Type_List
 extern std::map<Type*, std::vector<std::string> > record_member_name_list;// StructType -> Member_Name_List
 extern std::map<Type*, std::vector<bool> > record_member_array;// StructType -> Member_var_ame_List
+extern std::map<Type*, std::vector<int> > record_array_lower;
 
 
 ASTNodes::CodeGenResult* ASTNodes::RecordTypeDefineNode::code_gen(){
@@ -40,13 +42,14 @@ ASTNodes::CodeGenResult* ASTNodes::RecordTypeDefineNode::code_gen(){
         }
         auto member_type = type_map[this->member_type_name[i]];
         if (this->mem_is_array[i]){
-            elements.push_back(ArrayType::get(member_type, this->mem_arrag_length[i]));
+            elements.push_back(ArrayType::get(member_type, this->mem_array_length[i]));
         } else {
             elements.push_back(member_type);
         }
         record_type_list[struct_type].push_back(member_type);
         record_member_name_list[struct_type].push_back(this->member_var_name[i]);
         record_member_array[struct_type].push_back(this->mem_is_array[i]);
+        record_array_lower[struct_type].push_back(this->mem_array_lower[i]);
     }
     struct_type->setBody(elements);
 

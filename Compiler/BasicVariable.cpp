@@ -11,10 +11,13 @@ extern std::map<Type*, Constant*> zero_initial;// Type -> zeroinitial
 extern std::map<std::string, Value*> table_mem[MAX_NESTED];// VarName -> Memory
 extern std::map<std::string, Type*> table_type[MAX_NESTED];// VarName -> Type
 extern std::map<std::string, bool> table_array[MAX_NESTED];// VarName -> Array
+extern std::map<std::string, int> table_array_lower[MAX_NESTED];// VarName -> LowerBound
+
 
 extern std::map<Type*, std::vector<Type*> > record_type_list;// StructType -> Member_Type_List
 extern std::map<Type*, std::vector<std::string> > record_member_name_list;// StructType -> Member_Name_List
 extern std::map<Type*, std::vector<bool> > record_member_array;// StructType -> Member_Name_List
+extern std::map<Type*, std::vector<int> > record_array_lower;
 
 bool is_basic_type(Type* _type){
 
@@ -70,6 +73,7 @@ ASTNodes::CodeGenResult* ASTNodes::VariableDefineNode::code_gen(){
             table_mem[stage][this->name] = global_variable;
             table_type[stage][this->name] = variable_type;
             table_array[stage][this->name] = true;
+            table_array_lower[stage][this->name] = this->lower_bound;
         } else {
             GlobalVariable* global_variable = new GlobalVariable(
                 *(module.get()), variable_type, false,
@@ -78,6 +82,7 @@ ASTNodes::CodeGenResult* ASTNodes::VariableDefineNode::code_gen(){
             table_mem[stage][this->name] = global_variable;
             table_type[stage][this->name] = variable_type;
             table_array[stage][this->name] = false;
+            table_array_lower[stage][this->name] = 0;
         }
     } else {
         if (type_map.count(this->type)==0){
@@ -91,15 +96,19 @@ ASTNodes::CodeGenResult* ASTNodes::VariableDefineNode::code_gen(){
         if (this->is_array){
             ArrayType* array_type = ArrayType::get(variable_type, this->array_length);
             AllocaInst* local_variable = builder.CreateAlloca(array_type, nullptr, this->name);
+            
+            // module->print(outs(), nullptr);
 
             table_mem[stage][this->name] = local_variable;
             table_type[stage][this->name] = variable_type;
             table_array[stage][this->name] = true;
+            table_array_lower[stage][this->name] = this->lower_bound;
         } else {
             AllocaInst* local_variable = builder.CreateAlloca(variable_type, nullptr, this->name);
             table_mem[stage][this->name] = local_variable;
             table_type[stage][this->name] = variable_type;
             table_array[stage][this->name] = false;
+            table_array_lower[stage][this->name] = 0;
         }
     }
     return nullptr;
@@ -117,7 +126,7 @@ ASTNodes::CodeGenResult* ASTNodes::VarAccessNode::code_gen(){
                 if (table_array[stage_pointer][this->var_name]){ // array Var
                     Value* array_idx = this->idx->code_gen()->get_value();
                     idx_set.push_back(builder.getInt64(0));
-                    idx_set.push_back(array_idx);
+                    idx_set.push_back(builder.CreateBinOp(Instruction::BinaryOps::Sub, array_idx, builder.getInt64(table_array_lower[stage_pointer][this->var_name])));
                 } else { // Simple Var;
                     idx_set.push_back(builder.getInt64(0));
                 }
@@ -133,6 +142,7 @@ ASTNodes::CodeGenResult* ASTNodes::VarAccessNode::code_gen(){
         std::vector<Type*> above_type_list = record_type_list[above_type];
         std::vector<std::string> above_name_list = record_member_name_list[above_type];
         std::vector<bool> above_array_list = record_member_array[above_type];
+        std::vector<int> above_array_lower = record_array_lower[above_type];
         int struct_position = -1;
         for (int i=0; i<above_type_list.size(); ++i){
             if (above_name_list[i] == this->var_name){
@@ -143,7 +153,7 @@ ASTNodes::CodeGenResult* ASTNodes::VarAccessNode::code_gen(){
         if (above_array_list[struct_position]){ //array Var
             Value* array_idx = this->idx->code_gen()->get_value();
             idx_set.push_back(builder.getInt32(struct_position));
-            idx_set.push_back(array_idx);
+            idx_set.push_back(builder.CreateBinOp(Instruction::BinaryOps::Sub, array_idx, builder.getInt64(above_array_lower[struct_position])));
         } else { // Simple Var
             idx_set.push_back(builder.getInt32(struct_position));
         }
@@ -165,7 +175,7 @@ ASTNodes::CodeGenResult* ASTNodes::VarBaseNode::code_gen(){
                 if (table_array[stage_pointer][this->var_name]){ // array Var
                     Value* array_idx = this->idx->code_gen()->get_value();
                     idx_set.push_back(builder.getInt64(0));
-                    idx_set.push_back(array_idx);
+                    idx_set.push_back(builder.CreateBinOp(Instruction::BinaryOps::Sub, array_idx, builder.getInt64(table_array_lower[stage_pointer][this->var_name])));
                 } else { // Simple Var;
                     idx_set.push_back(builder.getInt64(0));
                 }
@@ -194,6 +204,7 @@ ASTNodes::CodeGenResult* ASTNodes::VarBaseNode::code_gen(){
         std::vector<Type*> above_type_list = record_type_list[above_type];
         std::vector<std::string> above_name_list = record_member_name_list[above_type];
         std::vector<bool> above_array_list = record_member_array[above_type];
+        std::vector<int> above_array_lower = record_array_lower[above_type];
         int struct_position = -1;
         for (int i=0; i<above_type_list.size(); ++i){
             if (above_name_list[i] == this->var_name){
@@ -204,7 +215,7 @@ ASTNodes::CodeGenResult* ASTNodes::VarBaseNode::code_gen(){
         if (above_array_list[struct_position]){ //array Var
             Value* array_idx = this->idx->code_gen()->get_value();
             idx_set.push_back(builder.getInt32(struct_position));
-            idx_set.push_back(array_idx);
+            idx_set.push_back(builder.CreateBinOp(Instruction::BinaryOps::Sub, array_idx, builder.getInt64(above_array_lower[struct_position])));
         } else { // Simple Var
             idx_set.push_back(builder.getInt32(struct_position));
         }

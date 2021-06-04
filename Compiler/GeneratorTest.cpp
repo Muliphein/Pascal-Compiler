@@ -1171,6 +1171,98 @@ void test11(){
     generator(Root);
 }
 
+
+void test12(){
+    gene_init("test");
+    ProgramNode* Root = new ProgramNode();
+
+    VariableDefineNode* aDefine = new VariableDefineNode();
+    aDefine->name="a";
+    aDefine->type="integer";
+    aDefine->is_array = true;
+    aDefine->array_length = 3;
+    aDefine->lower_bound = 50;
+
+    ConstantNode* zero = new ConstantNode();
+    zero->constant_type = IntType;
+    zero->constant_value = ConstantInt::get(IntType, 0);
+
+    ConstantNode* fifty = new ConstantNode();
+    fifty->constant_type = IntType;
+    fifty->constant_value = ConstantInt::get(IntType, 50);
+
+    
+    ConstantNode* fiftyone = new ConstantNode();
+    fiftyone->constant_type = IntType;
+    fiftyone->constant_value = ConstantInt::get(IntType, 51);
+
+    ConstantNode* fiftytwo = new ConstantNode();
+    fiftytwo->constant_type = IntType;
+    fiftytwo->constant_value = ConstantInt::get(IntType, 52);
+
+
+    VarBaseNode* aAccess = new VarBaseNode();
+    aAccess->var_name = "a";
+    aAccess->idx=dynamic_pointer_cast<BasicNode>(shared_ptr<ConstantNode>(fifty));
+    aAccess->nested_var =nullptr;
+    
+    VarBaseNode* bAccess = new VarBaseNode();
+    bAccess->var_name = "a";
+    bAccess->idx=dynamic_pointer_cast<BasicNode>(shared_ptr<ConstantNode>(fiftyone));
+    bAccess->nested_var =nullptr;
+
+    VarBaseNode* cAccess = new VarBaseNode();
+    cAccess->var_name = "a";
+    cAccess->idx=dynamic_pointer_cast<BasicNode>(shared_ptr<ConstantNode>(fiftytwo));
+    cAccess->nested_var =nullptr;
+
+    SysReadNode* sysRead = new SysReadNode();
+    sysRead->has_newline=true;
+    sysRead->args.clear();
+    sysRead->args.push_back(shared_ptr<VarBaseNode>(aAccess));
+    sysRead->args.push_back(shared_ptr<VarBaseNode>(bAccess));
+
+    BinaryExprNode* sum = new BinaryExprNode();
+    sum->expr_op=BinaryOper::PLUS;
+    sum->LHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(aAccess));
+    sum->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(bAccess));
+
+    AssignNode* cAssign = new AssignNode();
+    cAssign->LHS = shared_ptr<VarBaseNode>(cAccess);
+    cAssign->RHS = dynamic_pointer_cast<BasicNode>(shared_ptr<BinaryExprNode>(sum));
+
+
+    // Main
+    FunDeclareNode* mainFunc = new FunDeclareNode();
+    mainFunc->function_name = "main";
+    mainFunc->ret_type_name = "integer";
+    mainFunc->function_arg_types_names.clear();
+    mainFunc->function_arg_names.clear();
+
+    SysWriteNode* sysWrite2 = new SysWriteNode();
+    sysWrite2->has_newline = true;
+    sysWrite2->args.clear();
+    sysWrite2->args.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VarBaseNode>(cAccess)));
+
+    ReturnNode* mainRet = new ReturnNode();
+
+    FunctionBodyNode* mainBody = new FunctionBodyNode();
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<VariableDefineNode>(aDefine)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<SysReadNode>(sysRead)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<AssignNode>(cAssign)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<SysWriteNode>(sysWrite2)));
+    mainBody->stmts.push_back(dynamic_pointer_cast<BasicNode>(shared_ptr<ReturnNode>(mainRet)));
+
+    FunctionNode* mainNode = new FunctionNode();
+    mainNode->func_declare = shared_ptr<FunDeclareNode>(mainFunc);
+    mainNode->func_body = shared_ptr<FunctionBodyNode>(mainBody);
+    // Main End
+
+    Root->parts.push_back(shared_ptr<FunctionNode>(mainNode));
+
+    generator(Root);
+}
+
 int main()
 {
 
@@ -1185,7 +1277,8 @@ int main()
         // test8(); // If Condition
         // test9(); // Loop sum 1..n
         // test10(); // Void Function Call
-        test11(); // Var param
+        // test11(); // Var param
+        test12(); // Var Lower
         // All Test Passed
     } catch (char const * s){
         cout<<s<<endl;

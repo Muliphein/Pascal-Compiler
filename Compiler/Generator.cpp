@@ -16,10 +16,12 @@ std::map<std::string, Value*> table_mem[MAX_NESTED];// VarName -> Memory
 std::map<std::string, Type*> table_type[MAX_NESTED];// VarName -> Type
 std::map<std::string, bool> table_array[MAX_NESTED];// VarName -> Array
 std::map<Function*, std::vector<bool> > function_var_arg;// Function* -> Var args array
+std::map<std::string, int> table_array_lower[MAX_NESTED];// VarName -> LowerBound
 
 std::map<Type*, std::vector<Type*> > record_type_list;// StructType -> Member_Type_List
 std::map<Type*, std::vector<std::string> > record_member_name_list;// StructType -> Member_Name_List
 std::map<Type*, std::vector<bool> > record_member_array;// StructType -> Member_Name_List
+std::map<Type*, std::vector<int> > record_array_lower;
 
 Type* ShortIntType; // 1 byte
 Type* IntType;  // 2 byte *
