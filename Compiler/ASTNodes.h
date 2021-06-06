@@ -162,15 +162,6 @@ namespace ASTNodes{
         BinaryExprNode(){};
         CodeGenResult* code_gen() override;
 	};
-
-    class CallNode: public BasicNode{
-    public:
-        std::string callee_name;
-        std::vector<std::shared_ptr<BasicNode> > callee_args;
-        CallNode(){};
-        CodeGenResult* code_gen() override;
-    };
-
     class FunDeclareNode: public BasicNode{
     public:
         std::string function_name;
@@ -203,15 +194,6 @@ namespace ASTNodes{
         std::shared_ptr<VarBaseNode> LHS;
         std::shared_ptr<BasicNode> RHS;
         AssignNode(){};
-        CodeGenResult* code_gen() override;
-    };
-
-    class StructDefineNode: public BasicNode{
-    public:
-        std::string struct_name;
-        std::vector<llvm::Type*> struct_member_type;
-        std::vector<std::string> struct_member_name;
-        StructDefineNode(){};
         CodeGenResult* code_gen() override;
     };
 

@@ -30,3 +30,7 @@ syntax:
 	-rm test.tab.c
 	-rm lex.yy.c
 	-rm test.tab.h
+
+.PHONY: windows
+windows:
+	clang test.ll -o test.exe --target=x86_64-w64-windows-gnu
