@@ -1,5 +1,6 @@
 default:
 	@echo "Please Input the Parameters"
+
 .PHONY : test
 test: GeneratorTest.cpp BasicVariable.cpp Generator.cpp BasicConstant.cpp Function.cpp Statement.cpp SystemCall.cpp RecordType.cpp
 	clang++ GeneratorTest.cpp BasicVariable.cpp Generator.cpp BasicConstant.cpp Function.cpp Statement.cpp SystemCall.cpp RecordType.cpp `llvm-config --cflags --ldflags --libs` -o ./test_generator
@@ -30,6 +31,19 @@ syntax:
 	-rm test.tab.c
 	-rm lex.yy.c
 	-rm test.tab.h
+
+.PHONY: ast
+ast:
+	bison -d yacc.y
+	flex lexer.lex
+	clang++ yacc.tab.c lex.yy.c splast.cpp -o main -std=c++11
+
+.PHONY: astrun
+astrun:
+	bison -d yacc.y
+	flex lexer.lex
+	clang++ yacc.tab.c lex.yy.c splast.cpp -o main -std=c++11
+	./main test2.spl
 
 .PHONY: windows
 windows:
