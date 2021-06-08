@@ -2,7 +2,8 @@
 #include<stdio.h>
 #include<math.h>
 #include<string>
-#include"GraphGenerator.h"
+#include "GraphGenerator.h"
+#include "ASTTransfer.h"
 extern FILE* yyin;
 int yylex();
 void yyerror(const char *);
@@ -155,7 +156,7 @@ const_value : const_int_value { $$ = new SPLAST::ConstValueASTN($1); }
 ;
 
 const_int_value : I_VAL { $$ = $1; }
-| MAXINT { $$ = 32767; }
+| MAXINT { $$ = INT_MAX; }
 ;
 
 const_double_value : D_VAL { $$ = $1; }
@@ -387,6 +388,8 @@ int main(int argc, char **argv)
 	printf("Successfully Parsed ! ASTRoot = %p\n", ASTRoot);
 	Visitor visitor;
 	visitor.VisitProgramASTN(ASTRoot);
+	ASTTransfer transfer(ASTRoot);
+	std::cout << transfer->getProgramName() << std::endl;
 	return 0;
 }
 void yyerror(const char * msg)

@@ -50,5 +50,4 @@ public:
 	void VisitSExprASTN(SPLAST::SExprASTN* astn);
 	void VisitTermASTN(SPLAST::TermASTN* astn);
 	void VisitFactorASTN(SPLAST::FactorASTN* astn);
-
 };
