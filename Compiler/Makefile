@@ -48,3 +48,12 @@ astrun:
 .PHONY: windows
 windows:
 	clang test.ll -o test.exe --target=x86_64-w64-windows-gnu
+
+.PHONY: all
+all :
+	bison -d test.y
+	flex test.lex
+	clang++ test.tab.c lex.yy.c splast.cpp GraphGenerator.cpp ASTTransfer.cpp BasicVariable.cpp Generator.cpp BasicConstant.cpp Function.cpp Statement.cpp SystemCall.cpp RecordType.cpp `llvm-config --cflags --ldflags --libs` -o ./main
+	-rm test.tab.c
+	-rm lex.yy.c
+	-rm test.tab.h

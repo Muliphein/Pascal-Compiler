@@ -147,6 +147,10 @@ void ASTTransfer::TransferFieldDeclASTN(SPLAST::FieldDeclASTN * astn)
 	bool isArray = false;
 	int arrLen = 0;
 	int arrLower = 0;
+	
+	SPLAST::TypeDeclASTN* arrRange;
+	SPLAST::TypeDeclASTN* arrType;
+
 	switch (type)
 	{
 	case _ERRORVAR:
@@ -177,8 +181,8 @@ void ASTTransfer::TransferFieldDeclASTN(SPLAST::FieldDeclASTN * astn)
 		return;
 		break;
 	case _ARRAY:
-		SPLAST::TypeDeclASTN* arrRange = astn->getTypeDeclASTN()->getArrayRange();
-		SPLAST::TypeDeclASTN* arrType = astn->getTypeDeclASTN()->getArrayType();
+		arrRange = astn->getTypeDeclASTN()->getArrayRange();
+		arrType = astn->getTypeDeclASTN()->getArrayType();
 		if (arrRange->getType() != _RANGE) {
 			std::cout << "Undefined Behavior : Illegal array range ! Err = " << arrRange->getType() << std::endl;
 			return;
@@ -250,6 +254,10 @@ void ASTTransfer::TransferVarDeclASTN(SPLAST::VarDeclASTN * astn)
 	bool isArray = false;
 	int arrLen = 0;
 	int arrLower = 0;
+	
+	SPLAST::TypeDeclASTN* arrRange;
+	SPLAST::TypeDeclASTN* arrType;
+
 	switch (type)
 	{
 	case _ERRORVAR:
@@ -280,8 +288,8 @@ void ASTTransfer::TransferVarDeclASTN(SPLAST::VarDeclASTN * astn)
 		return;
 		break;
 	case _ARRAY:
-		SPLAST::TypeDeclASTN* arrRange = astn->getTypeDeclASTN()->getArrayRange();
-		SPLAST::TypeDeclASTN* arrType = astn->getTypeDeclASTN()->getArrayType();
+		arrRange = astn->getTypeDeclASTN()->getArrayRange();
+		arrType = astn->getTypeDeclASTN()->getArrayType();
 		if (arrRange->getType() != _RANGE) {
 			std::cout << "Undefined Behavior : Illegal array range ! Err = " << arrRange->getType() << std::endl;
 			return;
@@ -487,7 +495,7 @@ void ASTTransfer::TransferStmtASTN(SPLAST::StmtASTN * astn)
 void ASTTransfer::TransferAssignStmtASTN(SPLAST::AssignStmtASTN * astn)
 {
 	std::shared_ptr<ASTNodes::AssignNode> assign(new ASTNodes::AssignNode());
-	assign->LHS = std::make_shared<ASTNodes::VarBaseNode>(new ASTNodes::VarBaseNode(astn->getName(), nullptr, nullptr));
+	assign->LHS = std::shared_ptr<ASTNodes::VarBaseNode>(new ASTNodes::VarBaseNode(astn->getName(), nullptr, nullptr));
 	assign->RHS = TransferExprASTN(astn->getExpr());
 	switch (astn->getType()) {
 	case _VARIABLE:
@@ -496,7 +504,7 @@ void ASTTransfer::TransferAssignStmtASTN(SPLAST::AssignStmtASTN * astn)
 		assign->LHS->idx = TransferExprASTN(astn->getArrayIdx());
 		break;
 	case _CLASSMEM:
-		assign->LHS->nested_var = std::make_shared<ASTNodes::VarAccessNode>(new ASTNodes::VarAccessNode());
+		assign->LHS->nested_var = std::shared_ptr<ASTNodes::VarAccessNode>(new ASTNodes::VarAccessNode());
 		assign->LHS->nested_var->var_name = astn->getName();
 		assign->LHS->nested_var->nested_var = nullptr;
 		assign->LHS->nested_var->idx = nullptr;
@@ -558,11 +566,11 @@ void ASTTransfer::TransferIfStmtASTN(SPLAST::IfStmtASTN * astn)
 {
 	std::shared_ptr<ASTNodes::IfElseNode> ifelse(new ASTNodes::IfElseNode());
 	ifelse->cond = TransferExprASTN(astn->getCondition());
-	ifelse->then_body = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::make_shared<ASTNodes::StmtSeqNode>(new ASTNodes::StmtSeqNode()));
+	ifelse->then_body = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::shared_ptr<ASTNodes::StmtSeqNode>(new ASTNodes::StmtSeqNode()));
 	std::shared_ptr<std::vector<std::shared_ptr<ASTNodes::BasicNode>>> temp = _vecptr;
 	_vecptr = std::make_shared<std::vector<std::shared_ptr<ASTNodes::BasicNode>>>(std::dynamic_pointer_cast<ASTNodes::StmtSeqNode>(ifelse->then_body)->stmts);
 	TransferStmtASTN(astn->getStmt());
-	ifelse->else_body = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::make_shared<ASTNodes::StmtSeqNode>(new ASTNodes::StmtSeqNode()));
+	ifelse->else_body = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::shared_ptr<ASTNodes::StmtSeqNode>(new ASTNodes::StmtSeqNode()));
 	_vecptr = std::make_shared<std::vector<std::shared_ptr<ASTNodes::BasicNode>>>(std::dynamic_pointer_cast<ASTNodes::StmtSeqNode>(ifelse->else_body)->stmts);
 	TransferStmtASTN(astn->getElseClause()->getStmt());
 	_vecptr = temp;
@@ -576,7 +584,7 @@ void ASTTransfer::TransferRepeatStmtASTN(SPLAST::RepeatStmtASTN * astn)
 	repeat->is_start = false;
 	repeat->reverse = true;
 	repeat->rep_con = TransferExprASTN(astn->getCondition());
-	repeat->rep_body_node = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::make_shared<ASTNodes::StmtSeqNode>(new ASTNodes::StmtSeqNode()));
+	repeat->rep_body_node = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::shared_ptr<ASTNodes::StmtSeqNode>(new ASTNodes::StmtSeqNode()));
 	std::shared_ptr<std::vector<std::shared_ptr<ASTNodes::BasicNode>>> temp = _vecptr;
 	_vecptr = std::make_shared<std::vector<std::shared_ptr<ASTNodes::BasicNode>>>(std::dynamic_pointer_cast<ASTNodes::StmtSeqNode>(repeat->rep_body_node)->stmts);
 	TransferStmtListASTN(astn->getStmtList());
@@ -591,7 +599,7 @@ void ASTTransfer::TransferWhileStmtASTN(SPLAST::WhileStmtASTN * astn)
 	repeat->is_start = true;
 	repeat->reverse = false;
 	repeat->rep_con = TransferExprASTN(astn->getCondition());
-	repeat->rep_body_node = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::make_shared<ASTNodes::StmtSeqNode>(new ASTNodes::StmtSeqNode()));
+	repeat->rep_body_node = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::shared_ptr<ASTNodes::StmtSeqNode>(new ASTNodes::StmtSeqNode()));
 	std::shared_ptr<std::vector<std::shared_ptr<ASTNodes::BasicNode>>> temp = _vecptr;
 	_vecptr = std::make_shared<std::vector<std::shared_ptr<ASTNodes::BasicNode>>>(std::dynamic_pointer_cast<ASTNodes::StmtSeqNode>(repeat->rep_body_node)->stmts);
 	TransferStmtASTN(astn->getStmt());
@@ -612,7 +620,7 @@ int getArrLength(SPLAST::TypeDeclASTN * arrRange)
 		std::cout << "Caution [Caused by getArrLength()] : Calculating a non-range variable!\n";
 		return -1;
 	}
-	if (arrRange->getRangeStartVal == nullptr) {
+	if (arrRange->getRangeStartVal() == nullptr) {
 		// limited function
 		std::cout << "Caution [Caused by getArrLength()] : Array Range is a variable!\n";
 		return -2;
@@ -654,7 +662,7 @@ int getArrBase(SPLAST::TypeDeclASTN * arrRange)
 		std::cout << "Caution [Caused by getArrBase()] : Calculating a non-range variable!\n";
 		return -1;
 	}
-	if (arrRange->getRangeStartVal == nullptr) {
+	if (arrRange->getRangeStartVal() == nullptr) {
 		// limited function
 		std::cout << "Caution [Caused by getArrBase()] : Array Range is a variable!\n";
 		return -2;
@@ -797,7 +805,7 @@ std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferExprASTN(SPLAST::ExprA
 		now->LHS = TransferSExprASTN(astn->getSExpr(i));
 		if (i == sexprNum - 2) now->RHS = TransferSExprASTN(astn->getSExpr(sexprNum - 1));
 		else {
-			now->RHS = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::make_shared<ASTNodes::BinaryExprNode>(new ASTNodes::BinaryExprNode()));
+			now->RHS = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::shared_ptr<ASTNodes::BinaryExprNode>(new ASTNodes::BinaryExprNode()));
 			now = std::dynamic_pointer_cast<ASTNodes::BinaryExprNode>(now->RHS);
 		}
 	}
@@ -827,7 +835,7 @@ std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferSExprASTN(SPLAST::SExp
 		now->LHS = TransferTermASTN(astn->getTerm(i));
 		if (i == termNum - 2) now->RHS = TransferTermASTN(astn->getTerm(termNum - 1));
 		else {
-			now->RHS = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::make_shared<ASTNodes::BinaryExprNode>(new ASTNodes::BinaryExprNode()));
+			now->RHS = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::shared_ptr<ASTNodes::BinaryExprNode>(new ASTNodes::BinaryExprNode()));
 			now = std::dynamic_pointer_cast<ASTNodes::BinaryExprNode>(now->RHS);
 		}
 	}
@@ -863,7 +871,7 @@ std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferTermASTN(SPLAST::TermA
 		now->LHS = TransferFactorASTN(astn->getFactor(i));
 		if (i == facNum - 2) now->RHS = TransferFactorASTN(astn->getFactor(facNum - 1));
 		else {
-			now->RHS = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::make_shared<ASTNodes::BinaryExprNode>(new ASTNodes::BinaryExprNode()));
+			now->RHS = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::shared_ptr<ASTNodes::BinaryExprNode>(new ASTNodes::BinaryExprNode()));
 			now = std::dynamic_pointer_cast<ASTNodes::BinaryExprNode>(now->RHS);
 		} 
 	}
@@ -879,7 +887,7 @@ std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferFactorASTN(SPLAST::Fac
 	std::shared_ptr<ASTNodes::VarAccessNode> varacc;
 	switch (astn->getFactorType()) {
 	case _USERVAL:
-		ptr = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::make_shared<ASTNodes::VarBaseNode>(new ASTNodes::VarBaseNode(astn->getName(), nullptr, nullptr)));
+		ptr = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::shared_ptr<ASTNodes::VarBaseNode>(new ASTNodes::VarBaseNode(astn->getName(), nullptr, nullptr)));
 		return ptr;
 	case _SYSFUNCT:
 		std::cout << "Error Factor type! Err = " << astn->getFactorType() << std::endl;
@@ -890,7 +898,7 @@ std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferFactorASTN(SPLAST::Fac
 			return nullptr;
 		}
 		ptr = _nodeptr;
-		funptr = std::make_shared<ASTNodes::FunctionCallNode>(new ASTNodes::FunctionCallNode());
+		funptr = std::shared_ptr<ASTNodes::FunctionCallNode>(new ASTNodes::FunctionCallNode());
 		_nodeptr = std::dynamic_pointer_cast<ASTNodes::BasicNode>(funptr);
 		TransferExprListASTN(astn->getArgsList());
 		_nodeptr = ptr;
@@ -905,20 +913,20 @@ std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferFactorASTN(SPLAST::Fac
 		std::cout << "NOT instruction not finished yet.\n";
 		return nullptr;
 	case _NEG:
-		binary = std::make_shared<ASTNodes::BinaryExprNode>(new ASTNodes::BinaryExprNode());
+		binary = std::shared_ptr<ASTNodes::BinaryExprNode>(new ASTNodes::BinaryExprNode());
 		binary->expr_op = BinaryOper::MINUS;
 		binary->RHS = TransferFactorASTN(astn->getFactor());
 		binary->LHS = std::dynamic_pointer_cast<ASTNodes::BasicNode>(TransferConstValueASTN(new SPLAST::ConstValueASTN(0)));
 		return std::dynamic_pointer_cast<ASTNodes::BasicNode>(binary);
 	case _INDEX:
-		varbase = std::make_shared<ASTNodes::VarBaseNode>(new ASTNodes::VarBaseNode(astn->getName(), TransferExprASTN(astn->getExpr()), nullptr));
+		varbase = std::shared_ptr<ASTNodes::VarBaseNode>(new ASTNodes::VarBaseNode(astn->getName(), TransferExprASTN(astn->getExpr()), nullptr));
 		return std::dynamic_pointer_cast<ASTNodes::BasicNode>(varbase);
 	case _MEMBER:
-		varacc = std::make_shared<ASTNodes::VarAccessNode>(new ASTNodes::VarAccessNode());
+		varacc = std::shared_ptr<ASTNodes::VarAccessNode>(new ASTNodes::VarAccessNode());
 		varacc->nested_var = nullptr;
 		varacc->var_name = astn->getMemName();
 		varacc->idx = nullptr;
-		varbase = std::make_shared<ASTNodes::VarBaseNode>(new ASTNodes::VarBaseNode(astn->getName(), nullptr, varacc));
+		varbase = std::shared_ptr<ASTNodes::VarBaseNode>(new ASTNodes::VarBaseNode(astn->getName(), nullptr, varacc));
 		return std::dynamic_pointer_cast<ASTNodes::BasicNode>(varbase);
 	case _ERRORFACTOR:
 	default:
