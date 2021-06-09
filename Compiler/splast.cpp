@@ -1096,7 +1096,7 @@ SPLAST::FactorASTN::FactorASTN(SPLFuncType funcType) : _type(_FUNCTION), _funcTy
 }
 
 SPLAST::FactorASTN::FactorASTN(SPLFuncType funcType, ExprListASTN * argsList) : _type(_FUNCTION), _funcType(funcType), 
-	_factorType(_RET), _argsList(_argsList)
+	_factorType(_RET), _argsList(argsList)
 {
 }
 

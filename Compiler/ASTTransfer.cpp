@@ -28,14 +28,17 @@ std::string ASTTransfer::getProgramName() const
 
 void ASTTransfer::TransferProgramASTN(SPLAST::ProgramASTN * astn)
 {
+	printfTransferMsg("ProgramASTN", true);
 	_programName = astn->getProgramHeadASTN()->getName();
 	_vecptr = std::make_shared<std::vector<std::shared_ptr<ASTNodes::BasicNode>>>(_program->parts);
 	TransferRoutineASTN(astn->getRoutineASTN());
+	printfTransferMsg("ProgramASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferRoutineASTN(SPLAST::RoutineASTN * astn)
 {
+	printfTransferMsg("RoutineASTN", true);
 	TransferRoutineHeadASTN(astn->getRoutineHeadASTN());
 
 	std::shared_ptr<ASTNodes::FunctionNode> mainFunc(new ASTNodes::FunctionNode());
@@ -53,28 +56,38 @@ void ASTTransfer::TransferRoutineASTN(SPLAST::RoutineASTN * astn)
 	std::shared_ptr<ASTNodes::ReturnNode> ret(new ASTNodes::ReturnNode());
 	_vecptr->push_back(ret);
 	_vecptr = temp;
+	printfTransferMsg("RoutineASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferRoutineHeadASTN(SPLAST::RoutineHeadASTN * astn)
 {
+	printfTransferMsg("RoutineHeadASTN", true);
 	TransferConstPartASTN(astn->getConstPartASTN());
 	TransferTypePartASTN(astn->getTypePartASTN());
 	TransferVarPartASTN(astn->getVarPartASTN());
 	TransferRoutinePartASTN(astn->getRoutinePartASTN());
+	printfTransferMsg("RoutineHeadASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferConstPartASTN(SPLAST::ConstPartASTN * astn)
 {
+	printfTransferMsg("ConstPartASTN", true);
 	size_t exprNum = astn->getConstExprNum();
+	if (exprNum == 0) {
+		printfTransferMsg("ConstPartASTN", false);
+		return;
+	}
 	for (int i = 0; i <= exprNum - 1; i++)
 		TransferConstExprASTN(astn->getConstExpr(i));
+	printfTransferMsg("ConstPartASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferConstExprASTN(SPLAST::ConstExprASTN * astn)
 {
+	printfTransferMsg("ConstExprASTN", true);
 	std::string name = astn->getName();
 	SPLVarType type = astn->getConstValueASTN()->getType();
 	std::shared_ptr<ASTNodes::VariableDefineNode> varDef(new ASTNodes::VariableDefineNode("ERROR",false,0,name));
@@ -89,11 +102,13 @@ void ASTTransfer::TransferConstExprASTN(SPLAST::ConstExprASTN * astn)
 	varAss->LHS = lhs;
 	varAss->RHS = std::dynamic_pointer_cast<ASTNodes::BasicNode>(TransferConstValueASTN(astn->getConstValueASTN()));
 	_vecptr->push_back(std::dynamic_pointer_cast<ASTNodes::BasicNode>(varAss));
+	printfTransferMsg("ConstExprASTN", false);
 	return;
 }
 
 std::shared_ptr<ASTNodes::ConstantNode> ASTTransfer::TransferConstValueASTN(SPLAST::ConstValueASTN * astn)
 {
+	printfTransferMsg("ConstValueASTN", true);
 	std::shared_ptr<ASTNodes::ConstantNode> constptr(new ASTNodes::ConstantNode());
 	SPLVarType type = astn->getType();
 	if (type == _INT) constptr->constant_type = IntType;
@@ -101,19 +116,27 @@ std::shared_ptr<ASTNodes::ConstantNode> ASTTransfer::TransferConstValueASTN(SPLA
 	if (type == _CHAR) constptr->constant_type = CharType;
 	if (type == _DOUBLE) constptr->constant_type = RealType;
 	constptr->constant_value = (Value*)(astn->getValue());
+	printfTransferMsg("ConstValueASTN", false);
 	return constptr;
 }
 
 void ASTTransfer::TransferTypePartASTN(SPLAST::TypePartASTN * astn)
 {
+	printfTransferMsg("TypePartASTN", true);
 	size_t defNum = astn->getTypeDefNum();
+	if (defNum == 0) {
+		printfTransferMsg("TypePartASTN", false);
+		return;
+	}
 	for (int i = 0; i <= defNum - 1; i++)
 		TransferTypeDefASTN(astn->getTypeDef(i));
+	printfTransferMsg("TypePartASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferTypeDefASTN(SPLAST::TypeDefASTN * astn)
 {
+	printfTransferMsg("TypeDefASTN", true);
 	SPLVarType type = astn->getTypeDeclASTN()->getType();
 	if (type != _RECORD) {
 		std::cout << "Undefined Behavior : Defining illegal type! Err = " << type << std::endl;
@@ -127,19 +150,27 @@ void ASTTransfer::TransferTypeDefASTN(SPLAST::TypeDefASTN * astn)
 	TransferFieldListASTN(astn->getTypeDeclASTN()->getFieldListASTN());
 	_vecptr->push_back(std::dynamic_pointer_cast<ASTNodes::BasicNode>(recDef));
 	_nodeptr = temp;
+	printfTransferMsg("TypeDefASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferFieldListASTN(SPLAST::FieldListASTN * astn)
 {
+	printfTransferMsg("FieldListASTN", true);
 	size_t declNum = astn->getFieldDeclNum();
+	if (declNum == 0) {
+		printfTransferMsg("FieldListASTN", false);
+		return;
+	}
 	for (int i = 0; i <= declNum - 1; i++)
 		TransferFieldDeclASTN(astn->getFieldDecl(i));
+	printfTransferMsg("FieldListASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferFieldDeclASTN(SPLAST::FieldDeclASTN * astn)
 {
+	printfTransferMsg("FieldDeclASTN", true);
 	std::shared_ptr<ASTNodes::RecordTypeDefineNode> recDef(std::dynamic_pointer_cast<ASTNodes::RecordTypeDefineNode>(_nodeptr));
 	std::vector<std::string> nameList = astn->getNameListASTN()->getNameList();
 	SPLVarType type = astn->getTypeDeclASTN()->getType();
@@ -228,6 +259,10 @@ void ASTTransfer::TransferFieldDeclASTN(SPLAST::FieldDeclASTN * astn)
 	}
 
 	size_t num = nameList.size();
+	if (num == 0) {
+		printfTransferMsg("FieldDeclASTN", false);
+		return;
+	}
 	for (int i = 0; i <= num - 1; i++) {
 		recDef->member_var_name.push_back(nameList.at(i));
 		recDef->member_type_name.push_back(typeName);
@@ -235,19 +270,27 @@ void ASTTransfer::TransferFieldDeclASTN(SPLAST::FieldDeclASTN * astn)
 		recDef->mem_array_length.push_back(arrLen);
 		recDef->mem_array_lower.push_back(arrLower);
 	}
+	printfTransferMsg("FieldDeclASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferVarPartASTN(SPLAST::VarPartASTN * astn)
 {
+	printfTransferMsg("VarPartASTN", true);
 	size_t declNum = astn->getVarDeclNum();
+	if (declNum == 0) {
+		printfTransferMsg("VarPartASTN", false);
+		return;
+	}
 	for (int i = 0; i <= declNum - 1; i++)
 		TransferVarDeclASTN(astn->getVarDeclASTN(i));
+	printfTransferMsg("VarPartASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferVarDeclASTN(SPLAST::VarDeclASTN * astn)
 {
+	printfTransferMsg("VarDeclASTN", true);
 	std::vector<std::string> nameList = astn->getNameListASTN()->getNameList();
 	SPLVarType type = astn->getTypeDeclASTN()->getType();
 	std::string typeName = "";
@@ -335,6 +378,10 @@ void ASTTransfer::TransferVarDeclASTN(SPLAST::VarDeclASTN * astn)
 	}
 
 	size_t num = nameList.size();
+	if (num == 0) {
+		printfTransferMsg("VarDeclASTN", false);
+		return;
+	}
 	for (int i = 0; i <= num - 1; i++) {
 		std::shared_ptr<ASTNodes::VariableDefineNode> varDef(new ASTNodes::VariableDefineNode());
 		varDef->name = nameList.at(i);
@@ -344,22 +391,30 @@ void ASTTransfer::TransferVarDeclASTN(SPLAST::VarDeclASTN * astn)
 		varDef->lower_bound = arrLower;
 		_vecptr->push_back(std::dynamic_pointer_cast<ASTNodes::BasicNode>(varDef));
 	}
+	printfTransferMsg("VarDeclASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferRoutinePartASTN(SPLAST::RoutinePartASTN * astn)
 {
+	printfTransferMsg("RoutinePartASTN", true);
 	size_t declNum = astn->getTotalDeclNum();
+	if (declNum == 0) {
+		printfTransferMsg("RoutinePartASTN", false);
+		return;
+	}
 	for (int i = 0; i <= declNum - 1; i++) {
 		int idx = astn->getIdx(i);
 		if (idx > 0) TransferFuncDeclASTN(astn->getFuncDecl(idx - 1));
 		else TransferProcDeclASTN(astn->getProcDecl(1 - idx));
 	}
+	printfTransferMsg("RoutinePartASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferFuncDeclASTN(SPLAST::FuncDeclASTN * astn)
 {
+	printfTransferMsg("FuncDeclASTN", true);
 	std::shared_ptr<ASTNodes::FunctionNode> func(new ASTNodes::FunctionNode());
 	std::shared_ptr<ASTNodes::FunDeclareNode> funcDecl(new ASTNodes::FunDeclareNode());
 	std::shared_ptr<ASTNodes::FunctionBodyNode> funcBody(new ASTNodes::FunctionBodyNode());
@@ -385,11 +440,13 @@ void ASTTransfer::TransferFuncDeclASTN(SPLAST::FuncDeclASTN * astn)
 	std::shared_ptr<ASTNodes::ReturnNode> ret(new ASTNodes::ReturnNode());
 	_vecptr->push_back(ret);
 	_vecptr = tempvec;
+	printfTransferMsg("FuncDeclASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferProcDeclASTN(SPLAST::ProcDeclASTN * astn)
 {
+	printfTransferMsg("ProcDeclASTN", true);
 	std::shared_ptr<ASTNodes::FunctionNode> func(new ASTNodes::FunctionNode());
 	std::shared_ptr<ASTNodes::FunDeclareNode> funcDecl(new ASTNodes::FunDeclareNode());
 	std::shared_ptr<ASTNodes::FunctionBodyNode> funcBody(new ASTNodes::FunctionBodyNode());
@@ -411,19 +468,27 @@ void ASTTransfer::TransferProcDeclASTN(SPLAST::ProcDeclASTN * astn)
 	std::shared_ptr<ASTNodes::ReturnNode> ret(new ASTNodes::ReturnNode());
 	_vecptr->push_back(ret);
 	_vecptr = tempvec;
+	printfTransferMsg("ProcDeclASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferParaASTN(SPLAST::ParaASTN * astn)
 {
+	printfTransferMsg("ParaASTN", true);
 	size_t paraNum = astn->getParaTypeListNum();
+	if (paraNum == 0) {
+		printfTransferMsg("ParaASTN", false);
+		return;
+	}
 	for (int i = 0; i <= paraNum - 1; i++)
 		TransferParaTypeListASTN(astn->getParaTypeListASTN(i));
+	printfTransferMsg("ParaASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferParaTypeListASTN(SPLAST::ParaTypeListASTN * astn)
 {
+	printfTransferMsg("ParaTypeListASTN", true);
 	bool isVar = astn->getIsVar();
 	std::string typeName = getTypeName(astn->getTypeDeclASTN());
 	if (typeName == ERROR_TYPE) {
@@ -432,32 +497,46 @@ void ASTTransfer::TransferParaTypeListASTN(SPLAST::ParaTypeListASTN * astn)
 	}
 	std::shared_ptr<ASTNodes::FunDeclareNode> funcDecl(std::dynamic_pointer_cast<ASTNodes::FunDeclareNode>(_nodeptr));
 	size_t paraNum = astn->getNameListASTN()->getNameNum();
+	if (paraNum == 0) {
+		printfTransferMsg("ParaTypeListASTN", false);
+		return;
+	}
 	for (int i = 0; i <= paraNum - 1; i++) {
 		funcDecl->function_arg_var.push_back(isVar);
 		funcDecl->function_arg_names.push_back(astn->getNameListASTN()->getName(i));
 		funcDecl->function_arg_types_names.push_back(typeName);
 	}
+	printfTransferMsg("ParaTypeListASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferStmtListASTN(SPLAST::StmtListASTN * astn)
 {
+	printfTransferMsg("StmtListASTN", true);
 	size_t stmtNum = astn->getStmtNum();
+	if (stmtNum == 0) {
+		printfTransferMsg("StmtASTN", false);
+		return;
+	}	
 	for (int i = 0; i <= stmtNum - 1; i++)
 		TransferStmtASTN(astn->getStmt(i));
+	printfTransferMsg("StmtListASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferStmtASTN(SPLAST::StmtASTN * astn)
 {
+	printfTransferMsg("StmtASTN", true);
 	std::shared_ptr<ASTNodes::StmtSeqNode> seq(new ASTNodes::StmtSeqNode());
 	std::shared_ptr<std::vector<std::shared_ptr<ASTNodes::BasicNode>>> temp;
 	switch (astn->getType()) {
 	case _ASSIGN:
 		TransferAssignStmtASTN(astn->getAssignStmt());
+		printfTransferMsg("StmtASTN", false);
 		return;
 	case _PROC:
 		TransferProcStmtASTN(astn->getProcStmt());
+		printfTransferMsg("StmtASTN", false);
 		return;
 	case _COMPOUND:
 		_vecptr->push_back(seq);
@@ -465,35 +544,44 @@ void ASTTransfer::TransferStmtASTN(SPLAST::StmtASTN * astn)
 		_vecptr = std::make_shared<std::vector<std::shared_ptr<ASTNodes::BasicNode>>>(seq->stmts);
 		TransferStmtListASTN(astn->getCompoundStmt());
 		_vecptr = temp;
+		printfTransferMsg("StmtASTN", false);
 		return;
 	case _IF:
 		TransferIfStmtASTN(astn->getIfStmt());
+		printfTransferMsg("StmtASTN", false);
 		return;
 	case _REPEAT:
 		TransferRepeatStmtASTN(astn->getRepeatStmt());
+		printfTransferMsg("StmtASTN", false);
 		return;
 	case _WHILE:
 		TransferWhileStmtASTN(astn->getWhileStmt());
+		printfTransferMsg("StmtASTN", false);
 		return;
 	case _FOR:
 		TransferForStmtASTN(astn->getForStmt());
+		printfTransferMsg("StmtASTN", false);
 		return;
 	case _CASE:
 		TransferCaseStmtASTN(astn->getCaseStmt());
+		printfTransferMsg("StmtASTN", false);
 		return;
 	case _GOTO:
 		TransferGotoStmtASTN(astn->getGotoStmt());
+		printfTransferMsg("StmtASTN", false);
 		return;
 	case _ERRORSTMT:
 	default:
 		std::cout << "Error stmt type! Err = " << astn->getType() << std::endl;
 		break;
 	}
+	printfTransferMsg("StmtASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferAssignStmtASTN(SPLAST::AssignStmtASTN * astn)
 {
+	printfTransferMsg("AssignStmtASTN", true);
 	std::shared_ptr<ASTNodes::AssignNode> assign(new ASTNodes::AssignNode());
 	assign->LHS = std::shared_ptr<ASTNodes::VarBaseNode>(new ASTNodes::VarBaseNode(astn->getName(), nullptr, nullptr));
 	assign->RHS = TransferExprASTN(astn->getExpr());
@@ -510,13 +598,17 @@ void ASTTransfer::TransferAssignStmtASTN(SPLAST::AssignStmtASTN * astn)
 		assign->LHS->nested_var->idx = nullptr;
 		assign->LHS->var_name = astn->getMemName();
 		break;
+	default:
+		std::cout << "Error Assign Type! Err = " << astn->getType() << std::endl;
 	}
 	_vecptr->push_back(std::dynamic_pointer_cast<ASTNodes::BasicNode>(assign));
+	printfTransferMsg("AssignStmtASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferProcStmtASTN(SPLAST::ProcStmtASTN * astn)
 {
+	printfTransferMsg("ProcStmtASTN", true);
 	if (astn->getType() == _USERPROC) {
 		std::shared_ptr<ASTNodes::FunctionCallNode> funcall(new ASTNodes::FunctionCallNode());
 		funcall->func_name = astn->getProcName();
@@ -527,6 +619,7 @@ void ASTTransfer::TransferProcStmtASTN(SPLAST::ProcStmtASTN * astn)
 			_nodeptr = temp;
 		}
 		_vecptr->push_back(std::dynamic_pointer_cast<ASTNodes::BasicNode>(funcall));
+		printfTransferMsg("ProcStmtASTN", false);
 		return;
 	}
 	if (astn->getType() == _WRITE) {
@@ -534,10 +627,15 @@ void ASTTransfer::TransferProcStmtASTN(SPLAST::ProcStmtASTN * astn)
 		syswrite->has_newline = false;
 		SPLAST::ExprListASTN* temp = astn->getArgsList();
 		size_t exprNum = temp->getExprNum();
+		if (exprNum == 0) {
+			printfTransferMsg("ProcStmtASTN", false);
+			return;
+		}
 		for (int i = 0; i <= exprNum - 1; i++) {
 			syswrite->args.push_back(TransferExprASTN(temp->getExpr(i)));
 		}
 		_vecptr->push_back(std::dynamic_pointer_cast<ASTNodes::BasicNode>(syswrite));
+		printfTransferMsg("ProcStmtASTN", false);
 		return;
 	}
 	if (astn->getType() == _WRITELN) {
@@ -545,10 +643,15 @@ void ASTTransfer::TransferProcStmtASTN(SPLAST::ProcStmtASTN * astn)
 		syswrite->has_newline = true;
 		SPLAST::ExprListASTN* temp = astn->getArgsList();
 		size_t exprNum = temp->getExprNum();
+		if (exprNum == 0) {
+			printfTransferMsg("ProcStmtASTN", false);
+			return;
+		}
 		for (int i = 0; i <= exprNum - 1; i++) {
 			syswrite->args.push_back(TransferExprASTN(temp->getExpr(i)));
 		}
 		_vecptr->push_back(std::dynamic_pointer_cast<ASTNodes::BasicNode>(syswrite));
+		printfTransferMsg("ProcStmtASTN", false);
 		return;
 	}
 	if (astn->getType() == _READ) {
@@ -556,14 +659,17 @@ void ASTTransfer::TransferProcStmtASTN(SPLAST::ProcStmtASTN * astn)
 		sysread->has_newline = false;
 		sysread->args.push_back(std::dynamic_pointer_cast<ASTNodes::VarBaseNode>(TransferFactorASTN(astn->getReadArgs())));
 		_vecptr->push_back(std::dynamic_pointer_cast<ASTNodes::BasicNode>(sysread));
+		printfTransferMsg("ProcStmtASTN", false);
 		return;
 	}
 	std::cout << "Error Proc Stmt! Err = " << astn->getType() << std::endl;
+	printfTransferMsg("ProcStmtASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferIfStmtASTN(SPLAST::IfStmtASTN * astn)
 {
+	printfTransferMsg("IfStmtASTN", true);
 	std::shared_ptr<ASTNodes::IfElseNode> ifelse(new ASTNodes::IfElseNode());
 	ifelse->cond = TransferExprASTN(astn->getCondition());
 	ifelse->then_body = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::shared_ptr<ASTNodes::StmtSeqNode>(new ASTNodes::StmtSeqNode()));
@@ -575,11 +681,13 @@ void ASTTransfer::TransferIfStmtASTN(SPLAST::IfStmtASTN * astn)
 	TransferStmtASTN(astn->getElseClause()->getStmt());
 	_vecptr = temp;
 	_vecptr->push_back(std::dynamic_pointer_cast<ASTNodes::BasicNode>(ifelse));
+	printfTransferMsg("IfStmtASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferRepeatStmtASTN(SPLAST::RepeatStmtASTN * astn)
 {
+	printfTransferMsg("RepeatStmtASTN", true);
 	std::shared_ptr<ASTNodes::RepeatNode> repeat(new ASTNodes::RepeatNode());
 	repeat->is_start = false;
 	repeat->reverse = true;
@@ -590,11 +698,13 @@ void ASTTransfer::TransferRepeatStmtASTN(SPLAST::RepeatStmtASTN * astn)
 	TransferStmtListASTN(astn->getStmtList());
 	_vecptr = temp;
 	_vecptr->push_back(std::dynamic_pointer_cast<ASTNodes::BasicNode>(repeat));
+	printfTransferMsg("RepeatStmtASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferWhileStmtASTN(SPLAST::WhileStmtASTN * astn)
 {
+	printfTransferMsg("WhileStmtASTN", true);
 	std::shared_ptr<ASTNodes::RepeatNode> repeat(new ASTNodes::RepeatNode());
 	repeat->is_start = true;
 	repeat->reverse = false;
@@ -605,12 +715,24 @@ void ASTTransfer::TransferWhileStmtASTN(SPLAST::WhileStmtASTN * astn)
 	TransferStmtASTN(astn->getStmt());
 	_vecptr = temp;
 	_vecptr->push_back(std::dynamic_pointer_cast<ASTNodes::BasicNode>(repeat));
+	printfTransferMsg("WhileStmtASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferForStmtASTN(SPLAST::ForStmtASTN * astn)
 {
+	printfTransferMsg("ForStmtASTN", true);
 	std::cout << "For Stmt : limited function.\n";
+	printfTransferMsg("ForStmtASTN", false);
+	return;
+}
+
+void printfTransferMsg(std::string nodename, bool isstart)
+{
+	if (transfertest) {
+		if (isstart) std::cout << "Start Transferring " << nodename << std::endl;
+		else std::cout << "Transaction of " << nodename << " Finished!" << std::endl;
+	}
 	return;
 }
 
@@ -754,31 +876,46 @@ std::string getTypeName(SPLAST::TypeDeclASTN * typeDecl)
 
 void ASTTransfer::TransferCaseStmtASTN(SPLAST::CaseStmtASTN * astn)
 {
+	printfTransferMsg("CaseStmtASTN", true);
 	std::cout << "Case Stmt : limited function.\n";
+	printfTransferMsg("CaseStmtASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferGotoStmtASTN(SPLAST::GotoStmtASTN * astn)
 {
+	printfTransferMsg("GotoStmtASTN", true);
 	std::cout << "Goto Stmt : limited function.\n";
+	printfTransferMsg("GotoStmtASTN", false);
 	return;
 }
 
 void ASTTransfer::TransferExprListASTN(SPLAST::ExprListASTN * astn)
 {
+	printfTransferMsg("ExprListASTN", true);
 	std::shared_ptr<ASTNodes::FunctionCallNode> funcall = std::dynamic_pointer_cast<ASTNodes::FunctionCallNode>(_nodeptr);
 	size_t exprNum = astn->getExprNum();
+	if (exprNum == 0) {
+		printfTransferMsg("ExprListASTN", false);
+		return;
+	}
 	for (int i = 0; i <= exprNum - 1; i++)
 		funcall->args.push_back(TransferExprASTN(astn->getExpr(i)));
+	printfTransferMsg("ExprListASTN", false);
 	return;
 }
 
 std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferExprASTN(SPLAST::ExprASTN * astn)
 {
+	printfTransferMsg("ExprASTN", true);
 	if (astn->getSExprNum() == 1) return TransferSExprASTN(astn->getSExpr(0));
 	std::shared_ptr<ASTNodes::BinaryExprNode> root(new ASTNodes::BinaryExprNode());
 	std::shared_ptr<ASTNodes::BinaryExprNode> now = root;
 	size_t sexprNum = astn->getSExprNum();
+	if (sexprNum == 0) {
+		printfTransferMsg("ExprASTN", false);
+		return nullptr;
+	}
 	for (int i = 0; i <= sexprNum - 2; i++) {
 		switch (astn->getOp(i)) {
 		case _GE:
@@ -809,15 +946,21 @@ std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferExprASTN(SPLAST::ExprA
 			now = std::dynamic_pointer_cast<ASTNodes::BinaryExprNode>(now->RHS);
 		}
 	}
+	printfTransferMsg("ExprASTN", false);
 	return std::dynamic_pointer_cast<ASTNodes::BasicNode>(root);
 }
 
 std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferSExprASTN(SPLAST::SExprASTN * astn)
 {
+	printfTransferMsg("SexprASTN", true);
 	if (astn->getTermNum() == 1) return TransferTermASTN(astn->getTerm(0));
 	std::shared_ptr<ASTNodes::BinaryExprNode> root(new ASTNodes::BinaryExprNode());
 	std::shared_ptr<ASTNodes::BinaryExprNode> now = root;
 	size_t termNum = astn->getTermNum();
+	if (termNum == 0) {
+		printfTransferMsg("SexprASTN", false);
+		return nullptr;
+	}
 	for (int i = 0; i <= termNum - 2; i++) {
 		switch (astn->getOp(i)) {
 		case _PLUS:
@@ -839,15 +982,21 @@ std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferSExprASTN(SPLAST::SExp
 			now = std::dynamic_pointer_cast<ASTNodes::BinaryExprNode>(now->RHS);
 		}
 	}
+	printfTransferMsg("SexprASTN", false);
 	return std::dynamic_pointer_cast<ASTNodes::BasicNode>(root);
 }
 
 std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferTermASTN(SPLAST::TermASTN * astn)
 {
+	printfTransferMsg("TermASTN", true);
 	if (astn->getFactorNum() == 1) return TransferFactorASTN(astn->getFactor(0));
 	std::shared_ptr<ASTNodes::BinaryExprNode> root(new ASTNodes::BinaryExprNode());
 	std::shared_ptr<ASTNodes::BinaryExprNode> now = root;
 	size_t facNum = astn->getFactorNum();
+	if (facNum == 0) {
+		printfTransferMsg("TermASTN", false);
+		return nullptr;
+	}
 	for (int i = 0; i <= facNum - 2; i++) {
 		switch (astn->getOp(i)) {
 		case _MUL:
@@ -875,11 +1024,13 @@ std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferTermASTN(SPLAST::TermA
 			now = std::dynamic_pointer_cast<ASTNodes::BinaryExprNode>(now->RHS);
 		} 
 	}
+	printfTransferMsg("TermASTN", false);
 	return std::dynamic_pointer_cast<ASTNodes::BasicNode>(root);
 }
 
 std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferFactorASTN(SPLAST::FactorASTN * astn)
 {
+	printfTransferMsg("FactorASTN", true);
 	std::shared_ptr<ASTNodes::BasicNode> ptr;
 	std::shared_ptr<ASTNodes::VarBaseNode> varbase;
 	std::shared_ptr<ASTNodes::FunctionCallNode> funptr;
@@ -888,9 +1039,11 @@ std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferFactorASTN(SPLAST::Fac
 	switch (astn->getFactorType()) {
 	case _USERVAL:
 		ptr = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::shared_ptr<ASTNodes::VarBaseNode>(new ASTNodes::VarBaseNode(astn->getName(), nullptr, nullptr)));
+		printfTransferMsg("FactorASTN", false);
 		return ptr;
 	case _SYSFUNCT:
 		std::cout << "Error Factor type! Err = " << astn->getFactorType() << std::endl;
+		printfTransferMsg("FactorASTN", false);
 		return nullptr;
 	case _RET:
 		if (astn->getFuncType() != _USERFUNC) {
@@ -903,23 +1056,29 @@ std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferFactorASTN(SPLAST::Fac
 		TransferExprListASTN(astn->getArgsList());
 		_nodeptr = ptr;
 		funptr->func_name = astn->getName();
+		printfTransferMsg("FactorASTN", false);
 		return std::dynamic_pointer_cast<ASTNodes::BasicNode>(funptr);
 	case _CONST:
+		printfTransferMsg("FactorASTN", false);
 		return std::dynamic_pointer_cast<ASTNodes::BasicNode>(TransferConstValueASTN(astn->getConstVal()));
 	case _EXPR:
+		printfTransferMsg("FactorASTN", false);
 		return TransferExprASTN(astn->getExpr());
 	case _NOT:
 		// limited function
 		std::cout << "NOT instruction not finished yet.\n";
+		printfTransferMsg("FactorASTN", false);
 		return nullptr;
 	case _NEG:
 		binary = std::shared_ptr<ASTNodes::BinaryExprNode>(new ASTNodes::BinaryExprNode());
 		binary->expr_op = BinaryOper::MINUS;
 		binary->RHS = TransferFactorASTN(astn->getFactor());
 		binary->LHS = std::dynamic_pointer_cast<ASTNodes::BasicNode>(TransferConstValueASTN(new SPLAST::ConstValueASTN(0)));
+		printfTransferMsg("FactorASTN", false);
 		return std::dynamic_pointer_cast<ASTNodes::BasicNode>(binary);
 	case _INDEX:
 		varbase = std::shared_ptr<ASTNodes::VarBaseNode>(new ASTNodes::VarBaseNode(astn->getName(), TransferExprASTN(astn->getExpr()), nullptr));
+		printfTransferMsg("FactorASTN", false);
 		return std::dynamic_pointer_cast<ASTNodes::BasicNode>(varbase);
 	case _MEMBER:
 		varacc = std::shared_ptr<ASTNodes::VarAccessNode>(new ASTNodes::VarAccessNode());
@@ -927,11 +1086,14 @@ std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferFactorASTN(SPLAST::Fac
 		varacc->var_name = astn->getMemName();
 		varacc->idx = nullptr;
 		varbase = std::shared_ptr<ASTNodes::VarBaseNode>(new ASTNodes::VarBaseNode(astn->getName(), nullptr, varacc));
+		printfTransferMsg("FactorASTN", false);
 		return std::dynamic_pointer_cast<ASTNodes::BasicNode>(varbase);
 	case _ERRORFACTOR:
 	default:
 		std::cout << "Error Factor type! Err = " << astn->getFactorType() << std::endl;
+		printfTransferMsg("FactorASTN", false);
 		return nullptr;
 	}
-	return std::shared_ptr<ASTNodes::BasicNode>();
+	printfTransferMsg("FactorASTN", false);
+	return nullptr;
 }

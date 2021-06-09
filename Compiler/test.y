@@ -376,6 +376,9 @@ SYS_FUNCT : TOKEN_ABS { $$ = _ABS; }
 
 
 %%
+
+extern void generator(ASTNodes::BasicNode* ASTRoot);
+
 int main(int argc, char **argv)
 {
 	if (argc > 1) {
@@ -390,6 +393,7 @@ int main(int argc, char **argv)
 	visitor.VisitProgramASTN(ASTRoot);
 	ASTTransfer transfer(ASTRoot);
 	std::cout << transfer.getProgramName() << std::endl;
+	generator(std::dynamic_pointer_cast<ASTNodes::BasicNode>(transfer.getProgram()).get());
 	return 0;
 }
 void yyerror(const char * msg)

@@ -9,6 +9,9 @@
 #define VOID_TYPE "void"
 #define ERROR_TYPE "#ERRORTYPE#"
 
+const bool transfertest = false;
+void printfTransferMsg(std::string nodename, bool isstart);
+
 int getArrLength(SPLAST::TypeDeclASTN* arrRange);
 int getArrBase(SPLAST::TypeDeclASTN* arrRange);
 std::string getArrType(SPLAST::TypeDeclASTN* arrType); // limited function

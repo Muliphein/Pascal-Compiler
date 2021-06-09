@@ -3,8 +3,8 @@
 #include <iostream>
 #include <string>
 
-#define HEAD "--------"
-#define NONHEAD "        "
+#define HEAD "----"
+#define NONHEAD "    "
 
 class Visitor {
 	size_t _level;

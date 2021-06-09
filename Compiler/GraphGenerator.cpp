@@ -13,7 +13,7 @@ void Visitor::println(std::string msg, bool isHead, std::ostream & os)
 	}
 	if (_level == 1)
 	{
-		os << "©¸";
+		os << "|";
 		if (isHead) os << HEAD;
 		else os << NONHEAD;
 		os << msg << std::endl;
@@ -26,7 +26,7 @@ void Visitor::println(std::string msg, bool isHead, std::ostream & os)
 		os << NONHEAD;
 	}
 	if (_isLastChild.at(_level - 1) && !isHead) os << " ";
-	else if(isHead) os << "©¸";
+	else if(isHead) os << "|";
 	else os << "|";
 	if (isHead) os << HEAD;
 	else os << NONHEAD;
@@ -177,12 +177,12 @@ void Visitor::VisitConstValueASTN(SPLAST::ConstValueASTN * astn)
 	void* value = astn->getValue();
 	if (type == _BOOL)
 	{
-		println("ConstValueASTN : bool, " + *(bool*)value ? "true" : "false");
+		println("ConstValueASTN : bool, " + std::string(*(bool*)value ? "true" : "false"));
 		return;
 	}
 	if (type == _CHAR)
 	{
-		println("ConstValueASTN : char, " + *(char*)value);
+		println(std::string("ConstValueASTN : char, ") + *(char*)value);
 		return;
 	}
 	if (type == _INT)
