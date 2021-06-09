@@ -3,7 +3,7 @@
 #include "ASTNodes.h"
 
 #define INT_TYPE "integer"
-#define DOUBLE_TYPE "double"
+#define DOUBLE_TYPE "real"
 #define BOOL_TYPE "bool"
 #define CHAR_TYPE "char"
 #define VOID_TYPE "void"
