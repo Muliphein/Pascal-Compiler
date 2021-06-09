@@ -105,6 +105,7 @@ namespace ASTNodes{
     public:
         virtual ~BasicNode() = default;
         virtual CodeGenResult* code_gen() = 0;
+        virtual void out_put(int tab_length = 0) = 0;
     };
 
     class VarAccessNode: public BasicNode{
@@ -114,6 +115,14 @@ namespace ASTNodes{
         std::shared_ptr<VarAccessNode> nested_var = nullptr;
         VarAccessNode(){};
         CodeGenResult* code_gen() override;
+
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" Access "<< this->var_name << std::endl;
+        }
+
     };
     
     class VarBaseNode: public BasicNode{
@@ -128,6 +137,12 @@ namespace ASTNodes{
             nested_var = _nested_var;
         };
         CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" Base "<< this->var_name << std::endl;
+        }
     };
 
     class ConstantNode: public BasicNode{
@@ -136,6 +151,12 @@ namespace ASTNodes{
         Value* constant_value;
         ConstantNode(){};
         CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" Constant " << std::endl;
+        }
     };
 
     class VariableDefineNode: public BasicNode{
@@ -153,6 +174,12 @@ namespace ASTNodes{
             name=_name;
         };
         CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" Define [" << this->name << "] Type: <" << this->type << ">" << std::endl;
+        }
     };
 
 	class BinaryExprNode: public BasicNode{
@@ -161,6 +188,14 @@ namespace ASTNodes{
         std::shared_ptr<BasicNode> LHS, RHS;
         BinaryExprNode(){};
         CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" Oper [" << this->expr_op << std::endl;
+            this->LHS->out_put(tab_length+1);
+            this->RHS->out_put(tab_length+1);
+        }
 	};
     class FunDeclareNode: public BasicNode{
     public:
@@ -171,6 +206,12 @@ namespace ASTNodes{
         std::vector<bool> function_arg_var;
         FunDeclareNode(){};
         CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" Function Declare [" << this->function_name << "] Return : <" << this->ret_type_name << ">" << std::endl;
+        }
     };
 
     class FunctionBodyNode: public BasicNode{ // Will Add New Block And New Table And New Variable In Parameters
@@ -178,6 +219,12 @@ namespace ASTNodes{
         std::vector<std::shared_ptr<BasicNode> > stmts;
         FunctionBodyNode(){};
         CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" Function Body " << std::endl;
+        }
     };
 
     class FunctionNode: public BasicNode{
@@ -187,6 +234,14 @@ namespace ASTNodes{
         FunctionNode(){};
         std::string get_name();
         CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" Function Node " << std::endl;
+            this->func_declare->out_put(tab_length+1);
+            this->func_body->out_put(tab_length+1);
+        }
     };
 
     class AssignNode: public BasicNode{
@@ -195,6 +250,14 @@ namespace ASTNodes{
         std::shared_ptr<BasicNode> RHS;
         AssignNode(){};
         CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" Assign Node " << std::endl;
+            this->LHS->out_put(tab_length+1);
+            this->RHS->out_put(tab_length+1);
+        }
     };
 
     class SysWriteNode: public BasicNode{
@@ -203,6 +266,16 @@ namespace ASTNodes{
         std::vector<std::shared_ptr<BasicNode> > args;
         SysWriteNode(){};
         CodeGenResult* code_gen() override;
+        
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" SystemWrite Node " << std::endl;
+            for (int i=0; i<this->args.size(); ++i){
+                this->args[i]->out_put(tab_length+1);
+            }
+        }
     };
 
     class SysReadNode: public BasicNode{
@@ -211,6 +284,15 @@ namespace ASTNodes{
         std::vector<std::shared_ptr<VarBaseNode> > args;
         SysReadNode(){};
         CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" SystemRead Node " << std::endl;
+            for (int i=0; i<this->args.size(); ++i){
+                this->args[i]->out_put(tab_length+1);
+            }
+        }
     };
 
     class StmtSeqNode: public BasicNode{ // will add to Table Stages
@@ -218,6 +300,15 @@ namespace ASTNodes{
         std::vector<std::shared_ptr<BasicNode> > stmts;
         StmtSeqNode(){};
         CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" Stmt Node " << std::endl;
+            for (int i=0; i<this->stmts.size(); ++i){
+                this->stmts[i]->out_put(tab_length+1);
+            }
+        }
     };
 
     class ProgramNode: public BasicNode{ // won't add to Table Stages
@@ -225,12 +316,27 @@ namespace ASTNodes{
         std::vector<std::shared_ptr<BasicNode> > parts;
         ProgramNode(){};
         CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" Program Node : Size = " << this->parts.size() <<std::endl;
+            for (int i=0; i<this->parts.size(); ++i){
+                this->parts[i]->out_put(tab_length+1);
+            }
+        }
     };
 
     class ReturnNode: public BasicNode{
       public:
         ReturnNode(){};
         CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" Return Node " << std::endl;
+        }
     };
 
     class RecordTypeDefineNode: public BasicNode{
@@ -244,6 +350,12 @@ namespace ASTNodes{
         
         RecordTypeDefineNode(){};
         CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" Record Type Define Node [" << this->record_name <<"]" << std::endl;
+        }
     };
 
     class FunctionCallNode: public BasicNode{
@@ -253,6 +365,12 @@ namespace ASTNodes{
 
         FunctionCallNode(){};
         CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" Function Call Node [" << this->func_name <<"]" << std::endl;
+        }
     };
 
     class RepeatNode: public BasicNode{
@@ -263,6 +381,15 @@ namespace ASTNodes{
         std::shared_ptr<BasicNode> rep_body_node;
         RepeatNode(){};
         CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" Repeat Node " << std::endl;
+            this->rep_con->out_put(tab_length);
+            std::cerr<<" Rep Con ↑ Rep Body ↓ " << std::endl;
+            this->rep_body_node->out_put(tab_length);        
+        }
     };
 
     class IfElseNode: public BasicNode{
@@ -271,6 +398,17 @@ namespace ASTNodes{
         std::shared_ptr<BasicNode> then_body;
         std::shared_ptr<BasicNode> else_body;
         CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t"<<std::endl;
+            }
+            std::cerr<<" If-Else Node " << std::endl;
+            this->cond->out_put(tab_length);
+            std::cerr<<" If Con ↑" << std::endl;
+            this->then_body->out_put(tab_length);  
+            std::cerr<<" Then ↑ Else ↓ " << std::endl;   
+            this->else_body->out_put(tab_length);     
+        }
     };
 
 }

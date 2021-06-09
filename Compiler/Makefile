@@ -57,3 +57,4 @@ all :
 	-rm test.tab.c
 	-rm lex.yy.c
 	-rm test.tab.h
+	./main test2.spl
