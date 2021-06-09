@@ -9,8 +9,11 @@
 #define VOID_TYPE "void"
 #define ERROR_TYPE "#ERRORTYPE#"
 
-const bool transfertest = false;
+class ASTTransfer;
+
+const bool transfertest = true;
 void printfTransferMsg(std::string nodename, bool isstart);
+void printfSize(ASTTransfer* ast);
 
 int getArrLength(SPLAST::TypeDeclASTN* arrRange);
 int getArrBase(SPLAST::TypeDeclASTN* arrRange);
@@ -23,6 +26,7 @@ class ASTTransfer
 	std::shared_ptr<ASTNodes::BasicNode> _nodeptr;
 	std::shared_ptr<std::vector<std::shared_ptr<ASTNodes::BasicNode>>> _vecptr;
 	std::string _programName;
+	std::vector<std::shared_ptr<std::vector<std::shared_ptr<ASTNodes::BasicNode>>>> _trashbin;
 
 public:
 	ASTTransfer(SPLAST::ProgramASTN* program);

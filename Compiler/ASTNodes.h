@@ -118,7 +118,7 @@ namespace ASTNodes{
 
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" Access "<< this->var_name << std::endl;
         }
@@ -139,7 +139,7 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" Base "<< this->var_name << std::endl;
         }
@@ -153,7 +153,7 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" Constant " << std::endl;
         }
@@ -176,7 +176,7 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" Define [" << this->name << "] Type: <" << this->type << ">" << std::endl;
         }
@@ -190,7 +190,7 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" Oper [" << this->expr_op << std::endl;
             this->LHS->out_put(tab_length+1);
@@ -208,7 +208,7 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" Function Declare [" << this->function_name << "] Return : <" << this->ret_type_name << ">" << std::endl;
         }
@@ -221,9 +221,12 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" Function Body " << std::endl;
+			for (int i = 0; i < this->stmts.size(); ++i) {
+				this->stmts[i]->out_put(tab_length + 1);
+			}
         }
     };
 
@@ -236,7 +239,7 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" Function Node " << std::endl;
             this->func_declare->out_put(tab_length+1);
@@ -252,7 +255,7 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" Assign Node " << std::endl;
             this->LHS->out_put(tab_length+1);
@@ -269,7 +272,7 @@ namespace ASTNodes{
         
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" SystemWrite Node " << std::endl;
             for (int i=0; i<this->args.size(); ++i){
@@ -286,7 +289,7 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" SystemRead Node " << std::endl;
             for (int i=0; i<this->args.size(); ++i){
@@ -302,7 +305,7 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" Stmt Node " << std::endl;
             for (int i=0; i<this->stmts.size(); ++i){
@@ -318,7 +321,7 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" Program Node : Size = " << this->parts.size() <<std::endl;
             for (int i=0; i<this->parts.size(); ++i){
@@ -333,7 +336,7 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" Return Node " << std::endl;
         }
@@ -352,7 +355,7 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" Record Type Define Node [" << this->record_name <<"]" << std::endl;
         }
@@ -367,7 +370,7 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" Function Call Node [" << this->func_name <<"]" << std::endl;
         }
@@ -383,7 +386,7 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" Repeat Node " << std::endl;
             this->rep_con->out_put(tab_length);
@@ -400,7 +403,7 @@ namespace ASTNodes{
         CodeGenResult* code_gen() override;
         void out_put(int tab_length = 0) override{
             for (int i=0; i<tab_length; ++i){
-                std::cerr<<"\t"<<std::endl;
+                std::cerr<<"\t";
             }
             std::cerr<<" If-Else Node " << std::endl;
             this->cond->out_put(tab_length);
