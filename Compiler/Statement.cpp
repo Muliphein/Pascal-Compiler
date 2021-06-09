@@ -102,6 +102,8 @@ ASTNodes::CodeGenResult* ASTNodes::BinaryExprNode::code_gen(){
     Value* lv = lhs->get_value();
     Value* rv = rhs->get_value();
 
+    // module->print(outs(), nullptr);
+
     BinaryOper now_op = this->expr_op;
     bool ret_real = false;
     Type* lcm_type;
@@ -195,6 +197,7 @@ ASTNodes::CodeGenResult* ASTNodes::ProgramNode::code_gen(){
     // printf("In Program\n");
     for (auto arg: this->parts)
         arg->code_gen();
+        // module->print(outs(), nullptr);
     // printf("Out Program\n");
     return nullptr;
 }

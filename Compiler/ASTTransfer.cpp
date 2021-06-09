@@ -26,14 +26,18 @@ std::string ASTTransfer::getProgramName() const
 	return _programName;
 }
 
+extern void gene_init(std::string name);
+
 void ASTTransfer::TransferProgramASTN(SPLAST::ProgramASTN * astn)
 {
 	printfTransferMsg("ProgramASTN", true);
 	_programName = astn->getProgramHeadASTN()->getName();
+	gene_init(_programName);
 	_trashbin.push_back(_vecptr);
 	_vecptr = std::shared_ptr<std::vector<std::shared_ptr<ASTNodes::BasicNode>>>(&(_program->parts));
 	printfSize(this);
 	TransferRoutineASTN(astn->getRoutineASTN());
+	// _trashbin.clear();
 	printfTransferMsg("ProgramASTN", false);
 	return;
 }
@@ -121,11 +125,27 @@ std::shared_ptr<ASTNodes::ConstantNode> ASTTransfer::TransferConstValueASTN(SPLA
 	printfTransferMsg("ConstValueASTN", true);
 	std::shared_ptr<ASTNodes::ConstantNode> constptr(new ASTNodes::ConstantNode());
 	SPLVarType type = astn->getType();
-	if (type == _INT) constptr->constant_type = IntType;
-	if (type == _BOOL) constptr->constant_type = BoolType;
-	if (type == _CHAR) constptr->constant_type = CharType;
-	if (type == _DOUBLE) constptr->constant_type = RealType;
-	constptr->constant_value = (Value*)(astn->getValue());
+	// std::cout << type << std::endl;
+	if (type == _INT) {
+		constptr->constant_type = IntType;
+		// std::cout << "Int :" << *(int*)(astn->getValue()) << std::endl;
+		constptr->constant_value = ConstantInt::get(IntType, *(int*)(astn->getValue()));
+		// std::cout << "Over Int"<< std::endl;
+	}
+	if (type == _BOOL) {
+		constptr->constant_type = BoolType;
+		constptr->constant_value = ConstantInt::get(BoolType, *(bool*)(astn->getValue()));
+	}
+	if (type == _CHAR) {
+		constptr->constant_type = CharType;
+		constptr->constant_value = ConstantInt::get(CharType, *(char*)(astn->getValue()));
+	}
+	if (type == _DOUBLE) {
+		constptr->constant_type = RealType;
+		constptr->constant_value = ConstantInt::get(RealType, *(double*)(astn->getValue()));
+	}
+	// std::cout << "Over All"<< std::endl;
+	// constptr->constant_value = (Value*)(astn->getValue());
 	printfTransferMsg("ConstValueASTN", false);
 	return constptr;
 }

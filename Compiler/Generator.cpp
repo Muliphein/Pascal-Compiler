@@ -1,4 +1,5 @@
 #include "ASTNodes.h"
+#include <fstream>
 using namespace llvm;
 
 LLVMContext context;
@@ -105,6 +106,16 @@ void gene_init(std::string name)
 
 void generator(ASTNodes::BasicNode* ASTRoot)
 {
-    ASTRoot->code_gen();
-    module -> print(outs(), nullptr);
+    try{
+        ASTRoot->code_gen();
+        std::string IR;
+        raw_string_ostream OS(IR);
+        OS << *(module.get());
+        OS.flush();
+        FILE *fp = fopen((std::string(module->getName()) + ".ll").c_str(), "w+");
+        fprintf(fp, "%s", IR.c_str());
+        fclose(fp);
+    } catch (IRBuilderMeesage * mess){
+        std::cout << mess->message() << std::endl;
+    }
 }

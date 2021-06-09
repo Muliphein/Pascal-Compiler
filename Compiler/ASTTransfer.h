@@ -11,7 +11,7 @@
 
 class ASTTransfer;
 
-const bool transfertest = true;
+const bool transfertest = false;
 void printfTransferMsg(std::string nodename, bool isstart);
 void printfSize(ASTTransfer* ast);
 
@@ -35,6 +35,9 @@ public:
 	std::shared_ptr<std::vector<std::shared_ptr<ASTNodes::BasicNode>>> getVecptr() const;
 	std::string getProgramName() const;
 
+	~ASTTransfer(){
+		this->_trashbin.clear();
+	}
 	void TransferProgramASTN(SPLAST::ProgramASTN* astn);
 	void TransferRoutineASTN(SPLAST::RoutineASTN* astn); // _vecptr = program -> parts
 	void TransferRoutineHeadASTN(SPLAST::RoutineHeadASTN* astn); // _vecptr = program -> parts

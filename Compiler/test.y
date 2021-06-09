@@ -378,7 +378,6 @@ SYS_FUNCT : TOKEN_ABS { $$ = _ABS; }
 %%
 
 extern void generator(ASTNodes::BasicNode* ASTRoot);
-extern void gene_init(std::string name);
 
 int main(int argc, char **argv)
 {
@@ -395,7 +394,6 @@ int main(int argc, char **argv)
 	ASTTransfer transfer(ASTRoot);
 	std::string temp_str = transfer.getProgramName();
 	std::cout << temp_str << std::endl;
-	gene_init(temp_str);
 	transfer.getProgram()->out_put();
 	generator(std::dynamic_pointer_cast<ASTNodes::BasicNode>(transfer.getProgram()).get());
 	return 0;
