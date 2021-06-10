@@ -394,7 +394,7 @@ int main(int argc, char **argv)
 	ASTTransfer transfer(ASTRoot);
 	// std::string temp_str = transfer.getProgramName();
 	// std::cout << temp_str << std::endl;
-	// transfer.getProgram()->out_put(); // test output
+	transfer.getProgram()->out_put(); // test output
 	generator(std::dynamic_pointer_cast<ASTNodes::BasicNode>(transfer.getProgram()).get());
 	return 0;
 }

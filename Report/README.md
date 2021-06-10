@@ -24,6 +24,8 @@ We divide the compiler into three parts: Lexical Analysis, Syntax Analysis and S
 
 In this section, I will explain how our lexical analyzer will work. Based on the given SPL grammar rules, we modified some inadequate parts to make it more reasonable.
 
+We use flex in Linux or win_flex in Windows to build lexer. 
+
 ### 3 Syntax Analysis
 
 ### 4 Semantic Analysis & Code Generation

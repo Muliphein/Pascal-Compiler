@@ -57,4 +57,4 @@ all :
 	-rm SPL.tab.c
 	-rm lex.yy.c
 	-rm SPL.tab.h
-	./main test4.spl
+	./main test7.spl

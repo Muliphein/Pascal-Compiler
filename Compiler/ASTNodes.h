@@ -427,8 +427,9 @@ namespace ASTNodes{
                 std::cerr<<"\t";
             }
             std::cerr<<" For Node  var [" << loop_var<< "]" << std::endl;
-            this->start_val->out_put(tab_length+1);
-            this->end_val->out_put(tab_length+1);
+            this->start_val->out_put(tab_length);
+            this->end_val->out_put(tab_length);
+			this->loop_body->out_put(tab_length + 1);
         }
     };
 

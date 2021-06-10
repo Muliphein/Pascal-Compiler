@@ -308,11 +308,24 @@ ASTNodes::CodeGenResult* ASTNodes::ForNode::code_gen(){
     loop_con->RHS = std::dynamic_pointer_cast<BasicNode>(std::shared_ptr<BinaryExprNode>(end_val_fixed));
     builder.CreateCondBr(loop_con->code_gen()->get_value(), loop_block, end_block);
 
-    builder.CreateBr(loop_block);
+//    builder.CreateBr(loop_block);
     builder.SetInsertPoint(loop_block);
     this->loop_body->code_gen();
+    
+    ASTNodes::BinaryExprNode* loop_var_cal = new ASTNodes::BinaryExprNode();
+    loop_var_cal->expr_op = BinaryOper::PLUS;
+    loop_var_cal->LHS = std::shared_ptr<VarBaseNode>(loop_var_access);
+    loop_var_cal->RHS = std::dynamic_pointer_cast<BasicNode>(std::shared_ptr<ConstantNode>(fixed_val));
+
+    ASTNodes::AssignNode* loop_var_inc = new ASTNodes::AssignNode();
+    loop_var_inc->LHS = std::shared_ptr<VarBaseNode>(loop_var_access);
+    loop_var_inc->RHS = std::dynamic_pointer_cast<BasicNode>(std::shared_ptr<BinaryExprNode>(loop_var_cal));
+    loop_var_inc->code_gen();
+
+    
     builder.CreateBr(con_block);
     builder.SetInsertPoint(end_block);
 
     stage--;
+    return nullptr;
 }

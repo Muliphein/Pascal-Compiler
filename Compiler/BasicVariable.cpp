@@ -124,9 +124,23 @@ ASTNodes::CodeGenResult* ASTNodes::VarAccessNode::code_gen(){
                 auto _type = table_type[stage_pointer][this->var_name];
                 Value* _mem = pointer;
                 if (table_array[stage_pointer][this->var_name]){ // array Var
-                    Value* array_idx = this->idx->code_gen()->get_value();
                     idx_set.push_back(builder.getInt64(0));
-                    idx_set.push_back(builder.CreateBinOp(Instruction::BinaryOps::Sub, array_idx, builder.getInt64(table_array_lower[stage_pointer][this->var_name])));
+//                    Value* array_idx = this->idx->code_gen()->get_value();
+                    
+//                    printf("No!!!!!\n");
+				    ASTNodes::ConstantNode* offset = new ASTNodes::ConstantNode();
+				    offset->constant_type = IntType;
+				    offset->constant_value = ConstantInt::get(IntType, table_array_lower[stage_pointer][this->var_name]);
+
+                    
+                    ASTNodes::BinaryExprNode* index_cal = new ASTNodes::BinaryExprNode();
+                    index_cal->LHS = this->idx;
+            		index_cal->expr_op = BinaryOper::MINUS;
+                    index_cal->RHS = std::dynamic_pointer_cast<BasicNode>(std::shared_ptr<ConstantNode>(offset));
+                    
+                    Value* array_index = index_cal->code_gen()->get_value();
+                    
+                    idx_set.push_back(array_index);
                 } else { // Simple Var;
                     idx_set.push_back(builder.getInt64(0));
                 }
@@ -151,9 +165,24 @@ ASTNodes::CodeGenResult* ASTNodes::VarAccessNode::code_gen(){
             }
         }
         if (above_array_list[struct_position]){ //array Var
-            Value* array_idx = this->idx->code_gen()->get_value();
+//            Value* array_idx = this->idx->code_gen()->get_value();
             idx_set.push_back(builder.getInt32(struct_position));
-            idx_set.push_back(builder.CreateBinOp(Instruction::BinaryOps::Sub, array_idx, builder.getInt64(above_array_lower[struct_position])));
+            
+            
+		    ASTNodes::ConstantNode* offset = new ASTNodes::ConstantNode();
+		    offset->constant_type = IntType;
+		    offset->constant_value = ConstantInt::get(IntType, above_array_lower[struct_position]);
+
+            
+            ASTNodes::BinaryExprNode* index_cal = new ASTNodes::BinaryExprNode();
+            index_cal->LHS = this->idx;
+            index_cal->expr_op = BinaryOper::MINUS;
+            index_cal->RHS = std::dynamic_pointer_cast<BasicNode>(std::shared_ptr<ConstantNode>(offset));
+            
+            Value* array_index = index_cal->code_gen()->get_value();
+            
+            idx_set.push_back(array_index);
+//            idx_set.push_back(builder.CreateBinOp(Instruction::BinaryOps::Sub, array_idx, ConstantInt::get(IntType, above_array_lower[struct_position])));
         } else { // Simple Var
             idx_set.push_back(builder.getInt32(struct_position));
         }
@@ -173,9 +202,24 @@ ASTNodes::CodeGenResult* ASTNodes::VarBaseNode::code_gen(){
                 
                 // std::cout<<"Get Memory "<<std::endl;
                 if (table_array[stage_pointer][this->var_name]){ // array Var
-                    Value* array_idx = this->idx->code_gen()->get_value();
+//                    Value* array_idx = this->idx->code_gen()->get_value();
                     idx_set.push_back(builder.getInt64(0));
-                    idx_set.push_back(builder.CreateBinOp(Instruction::BinaryOps::Sub, array_idx, builder.getInt64(table_array_lower[stage_pointer][this->var_name])));
+                    
+                    
+				    ASTNodes::ConstantNode* offset = new ASTNodes::ConstantNode();
+				    offset->constant_type = IntType;
+				    offset->constant_value = ConstantInt::get(IntType, table_array_lower[stage_pointer][this->var_name]);
+
+                    
+                    ASTNodes::BinaryExprNode* index_cal = new ASTNodes::BinaryExprNode();
+                    index_cal->LHS = this->idx;
+            		index_cal->expr_op = BinaryOper::MINUS;
+                    index_cal->RHS = std::dynamic_pointer_cast<BasicNode>(std::shared_ptr<ConstantNode>(offset));
+                    
+                    Value* array_index = index_cal->code_gen()->get_value();
+                    
+                    idx_set.push_back(array_index);
+//                    idx_set.push_back(builder.CreateBinOp(Instruction::BinaryOps::Sub, array_idx, builder.getInt64(table_array_lower[stage_pointer][this->var_name])));
                 } else { // Simple Var;
                     idx_set.push_back(builder.getInt64(0));
                 }
@@ -213,9 +257,25 @@ ASTNodes::CodeGenResult* ASTNodes::VarBaseNode::code_gen(){
             }
         }
         if (above_array_list[struct_position]){ //array Var
-            Value* array_idx = this->idx->code_gen()->get_value();
+//            Value* array_idx = this->idx->code_gen()->get_value();
             idx_set.push_back(builder.getInt32(struct_position));
-            idx_set.push_back(builder.CreateBinOp(Instruction::BinaryOps::Sub, array_idx, builder.getInt64(above_array_lower[struct_position])));
+            
+            
+		    ASTNodes::ConstantNode* offset = new ASTNodes::ConstantNode();
+		    offset->constant_type = IntType;
+		    offset->constant_value = ConstantInt::get(IntType, above_array_lower[struct_position]);
+
+            
+            ASTNodes::BinaryExprNode* index_cal = new ASTNodes::BinaryExprNode();
+            index_cal->LHS = this->idx;
+            index_cal->expr_op = BinaryOper::MINUS;
+            index_cal->RHS = std::dynamic_pointer_cast<BasicNode>(std::shared_ptr<ConstantNode>(offset));
+            
+            Value* array_index = index_cal->code_gen()->get_value();
+            
+            idx_set.push_back(array_index);
+            
+//            idx_set.push_back(builder.CreateBinOp(Instruction::BinaryOps::Sub, array_idx, builder.getInt64(above_array_lower[struct_position])));
         } else { // Simple Var
             idx_set.push_back(builder.getInt32(struct_position));
         }

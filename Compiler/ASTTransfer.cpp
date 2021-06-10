@@ -793,7 +793,18 @@ void ASTTransfer::TransferWhileStmtASTN(SPLAST::WhileStmtASTN * astn)
 void ASTTransfer::TransferForStmtASTN(SPLAST::ForStmtASTN * astn)
 {
 	printfTransferMsg("ForStmtASTN", true);
-	std::cout << "For Stmt : limited function.\n";
+	std::shared_ptr<ASTNodes::ForNode> fornode(new ASTNodes::ForNode());
+	fornode->loop_var = astn->getName();
+	fornode->is_to = astn->getDir();
+	fornode->start_val = TransferExprASTN(astn->getStart());
+	fornode->end_val = TransferExprASTN(astn->getEnd());
+	fornode->loop_body = std::dynamic_pointer_cast<ASTNodes::BasicNode>(std::shared_ptr<ASTNodes::StmtSeqNode>(new ASTNodes::StmtSeqNode()));
+	std::shared_ptr<std::vector<std::shared_ptr<ASTNodes::BasicNode>>> temp = _vecptr;
+	_trashbin.push_back(_vecptr);
+	_vecptr = std::shared_ptr<std::vector<std::shared_ptr<ASTNodes::BasicNode>>>(&(std::dynamic_pointer_cast<ASTNodes::StmtSeqNode>(fornode->loop_body)->stmts), notDelete);
+	TransferStmtASTN(astn->getStmt());
+	_vecptr = temp;
+	_vecptr->push_back(std::dynamic_pointer_cast<ASTNodes::BasicNode>(fornode));
 	printfTransferMsg("ForStmtASTN", false);
 	return;
 }
