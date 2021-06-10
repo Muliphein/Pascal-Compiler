@@ -1,8 +1,8 @@
 # Report
 
-Jiang Haohan, 3180101995, Computer Science
+Jiang Haohan, 3180101995, Computer Science & Technology
 
-Wang Xulong, 3180105260, Computer Science
+Wang Xulong, 3180105260, Computer Science & Technology
 
 #### Abstract
 
@@ -21,6 +21,8 @@ This project, we use the flex, bison and LLVM to generate the code. LLVM use the
 We divide the compiler into three parts: Lexical Analysis, Syntax Analysis and Sematic Analysis & Code Generation. In the first parts, we use the flex, which is called "Fast Lexical Analyzer Generator" for token reading. And we use Bison, which is compatible with the YACC, which is also based on the LALR(1) to generate the syntax tree. In the last part, we use the LLVM to generate the IR code to the assembly code and executing program.
 
 ### 2 Lexical Analysis
+
+In this section, I will explain how our lexical analyzer will work. Based on the given SPL grammar rules, we modified some inadequate parts to make it more reasonable.
 
 ### 3 Syntax Analysis
 

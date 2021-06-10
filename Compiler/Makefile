@@ -51,10 +51,10 @@ windows:
 
 .PHONY: all
 all :
-	bison -d test.y
-	flex test.lex
-	clang++ test.tab.c lex.yy.c splast.cpp GraphGenerator.cpp ASTTransfer.cpp BasicVariable.cpp Generator.cpp BasicConstant.cpp Function.cpp Statement.cpp SystemCall.cpp RecordType.cpp `llvm-config --cflags --ldflags --libs` -o ./main
-	-rm test.tab.c
+	bison -d SPL.y
+	flex SPL.lex
+	clang++ SPL.tab.c lex.yy.c splast.cpp GraphGenerator.cpp ASTTransfer.cpp BasicVariable.cpp Generator.cpp BasicConstant.cpp Function.cpp Statement.cpp SystemCall.cpp RecordType.cpp `llvm-config --cflags --ldflags --libs` -o ./main
+	-rm SPL.tab.c
 	-rm lex.yy.c
-	-rm test.tab.h
+	-rm SPL.tab.h
 	./main test4.spl

@@ -1,5 +1,5 @@
 %{
-	#include "test.tab.h"
+	#include "SPL.tab.h"
 	#include <stdio.h>
 	#include <stdlib.h>
 	void yyerror(const char *);
