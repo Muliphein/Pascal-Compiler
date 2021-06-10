@@ -414,6 +414,24 @@ namespace ASTNodes{
         }
     };
 
+    class ForNode: public BasicNode{
+      public:
+        std::string loop_var;
+        std::shared_ptr<BasicNode> start_val;
+        std::shared_ptr<BasicNode> end_val;
+        std::shared_ptr<BasicNode> loop_body;
+        bool is_to; // true to ; false downto
+        CodeGenResult* code_gen() override;
+        void out_put(int tab_length = 0) override{
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t";
+            }
+            std::cerr<<" For Node  var [" << loop_var<< "]" << std::endl;
+            this->start_val->out_put(tab_length+1);
+            this->end_val->out_put(tab_length+1);
+        }
+    };
+
 }
 
 #endif

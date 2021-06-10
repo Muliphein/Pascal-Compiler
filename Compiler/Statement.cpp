@@ -268,3 +268,50 @@ ASTNodes::CodeGenResult* ASTNodes::IfElseNode::code_gen(){
         return nullptr;
     }
 }
+
+ASTNodes::CodeGenResult* ASTNodes::ForNode::code_gen(){
+    stage++;
+    Function* func = module->getFunction(now_function);
+
+    ASTNodes::VariableDefineNode* loop_var_define = new ASTNodes::VariableDefineNode();
+    loop_var_define->is_array = false;
+    loop_var_define->name = this->loop_var;
+    loop_var_define->type = std::string("integer");
+    loop_var_define->code_gen();
+
+    ASTNodes::VarBaseNode* loop_var_access = new ASTNodes::VarBaseNode();
+    loop_var_access->nested_var=nullptr;
+    loop_var_access->var_name=this->loop_var;
+    ASTNodes::AssignNode* loop_var_init = new ASTNodes::AssignNode();
+    loop_var_init->LHS = std::shared_ptr<VarBaseNode>(loop_var_access);
+    loop_var_init->RHS = this->start_val;
+    loop_var_init->code_gen();
+
+    BasicBlock * con_block = BasicBlock::Create(context, "con_block", func);
+    BasicBlock * loop_block = BasicBlock::Create(context, "loop_block", func);
+    BasicBlock * end_block = BasicBlock::Create(context, "end_block", func);
+    builder.CreateBr(con_block);
+    builder.SetInsertPoint(con_block);
+
+    ASTNodes::ConstantNode* fixed_val = new ASTNodes::ConstantNode();
+    fixed_val->constant_type = IntType;
+    fixed_val->constant_value = ConstantInt::get(IntType, is_to?1:-1);
+
+    ASTNodes::BinaryExprNode* end_val_fixed = new ASTNodes::BinaryExprNode();
+    end_val_fixed->expr_op = BinaryOper::PLUS;
+    end_val_fixed->LHS = this->end_val;
+    end_val_fixed->RHS = std::dynamic_pointer_cast<BasicNode>(std::shared_ptr<ConstantNode>(fixed_val));
+
+    ASTNodes::BinaryExprNode* loop_con = new ASTNodes::BinaryExprNode();
+    loop_con->expr_op = BinaryOper::UNEQUAL;
+    loop_con->LHS = std::dynamic_pointer_cast<BasicNode>(std::shared_ptr<VarBaseNode>(loop_var_access));
+    loop_con->RHS = std::dynamic_pointer_cast<BasicNode>(std::shared_ptr<BinaryExprNode>(end_val_fixed));
+    builder.CreateCondBr(loop_con->code_gen()->get_value(), loop_block, end_block);
+
+    builder.CreateBr(loop_block);
+    this->loop_body->code_gen();
+    builder.CreateBr(end_block);
+    builder.SetInsertPoint(end_block);
+
+    stage--;
+}
