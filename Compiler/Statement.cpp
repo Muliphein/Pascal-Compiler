@@ -309,8 +309,9 @@ ASTNodes::CodeGenResult* ASTNodes::ForNode::code_gen(){
     builder.CreateCondBr(loop_con->code_gen()->get_value(), loop_block, end_block);
 
     builder.CreateBr(loop_block);
+    builder.SetInsertPoint(loop_block);
     this->loop_body->code_gen();
-    builder.CreateBr(end_block);
+    builder.CreateBr(con_block);
     builder.SetInsertPoint(end_block);
 
     stage--;
