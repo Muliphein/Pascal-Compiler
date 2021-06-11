@@ -41,6 +41,7 @@ ASTNodes::CodeGenResult* ASTNodes::RecordTypeDefineNode::code_gen(){
             throw new IRBuilderMeesage("[IRBuilder] Error : Cant Find the Type <"+this->member_type_name[i]+">");
         }
         auto member_type = type_map[this->member_type_name[i]];
+        // std::cout << " ID :  is Array ? "<< this->mem_is_array[i] << std::endl; 
         if (this->mem_is_array[i]){
             elements.push_back(ArrayType::get(member_type, this->mem_array_length[i]));
         } else {

@@ -250,12 +250,16 @@ ASTNodes::CodeGenResult* ASTNodes::VarBaseNode::code_gen(){
         std::vector<bool> above_array_list = record_member_array[above_type];
         std::vector<int> above_array_lower = record_array_lower[above_type];
         int struct_position = -1;
+        // std::cout << "Above Type List Length = " << above_type_list.size() << std::endl;
         for (int i=0; i<above_type_list.size(); ++i){
+            // std::cout << "Above Type List Length = " << above_type_list.size() << std::endl;
             if (above_name_list[i] == this->var_name){
                 struct_position = i;
                 _type = above_type_list[i];
             }
         }
+        // std::cout << "Struct Position = " << struct_position << std::endl;
+        // std::cout << "IS  Position Array= " << above_array_list[struct_position] << std::endl;
         if (above_array_list[struct_position]){ //array Var
 //            Value* array_idx = this->idx->code_gen()->get_value();
             idx_set.push_back(builder.getInt32(struct_position));
