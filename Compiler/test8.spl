@@ -1,0 +1,17 @@
+program hello;
+var 
+	ans : array [0..8] of integer;
+	i : integer;
+
+begin
+	ans[0] := 1;
+	ans[1] := 1;
+	i := 2;
+	while i <= 8 do
+	begin
+		ans[i] := ans[i-1] + ans[i-2];
+		i := i + 1;
+	end;
+	writeln(ans[8]);
+end
+.

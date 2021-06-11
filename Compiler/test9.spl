@@ -1,0 +1,16 @@
+program hello;
+var 
+	ans : array [1..11] of integer;
+	i : integer;
+
+begin
+	ans[1] := 1;
+	ans[2] := 1;
+	i := 2;
+	repeat 
+		ans[i] := ans[i-1] + ans[i-2];
+		i := i + 1;
+	until i>11;
+	writeln(ans[11]);
+end
+.

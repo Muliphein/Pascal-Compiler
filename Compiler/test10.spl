@@ -1,0 +1,24 @@
+program hello;
+type
+	fib = record
+		num, idx : integer;
+	end
+	;
+var 
+	ans : array [1..11] of integer;
+	i : integer;
+	temp : fib;
+begin
+	temp.num := 11;
+	temp.idx := 1;
+	ans[temp.idx] := 1;
+	temp.idx := temp.idx + 1;
+	ans[temp.idx] := 1;
+	i := 2;
+	repeat 
+		ans[i] := ans[i-1] + ans[i-2];
+		i := i + 1;
+	until i>temp.num;
+	writeln(ans[11]);
+end
+.
