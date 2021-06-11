@@ -116,6 +116,7 @@ void generator(ASTNodes::BasicNode* ASTRoot)
         fprintf(fp, "%s", IR.c_str());
         fclose(fp);
     } catch (IRBuilderMeesage * mess){
+        module->print(outs(), nullptr);
         std::cout << mess->message() << std::endl;
     }
 }

@@ -142,6 +142,16 @@ namespace ASTNodes{
                 std::cerr<<"\t";
             }
             std::cerr<<" Base "<< this->var_name << std::endl;
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t";
+            }
+            std::cerr<<" Index : " << std::endl;
+            if (this->idx != nullptr) this->idx->out_put(tab_length+1);
+            for (int i=0; i<tab_length; ++i){
+                std::cerr<<"\t";
+            }
+            std::cerr<<" Nested Var : " << std::endl;
+            if (this->nested_var != nullptr) this->nested_var->out_put(tab_length+1);
         }
     };
 

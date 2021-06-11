@@ -57,3 +57,4 @@ all :
 	-rm SPL.tab.c
 	-rm lex.yy.c
 	-rm SPL.tab.h
+	./main test10.spl
