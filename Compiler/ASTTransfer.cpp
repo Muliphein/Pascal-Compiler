@@ -1179,9 +1179,9 @@ std::shared_ptr<ASTNodes::BasicNode> ASTTransfer::TransferFactorASTN(SPLAST::Fac
 	case _MEMBER:
 		varacc = std::shared_ptr<ASTNodes::VarAccessNode>(new ASTNodes::VarAccessNode());
 		varacc->nested_var = nullptr;
-		varacc->var_name = astn->getMemName();
+		varacc->var_name = astn->getName();
 		varacc->idx = nullptr;
-		varbase = std::shared_ptr<ASTNodes::VarBaseNode>(new ASTNodes::VarBaseNode(astn->getName(), nullptr, varacc));
+		varbase = std::shared_ptr<ASTNodes::VarBaseNode>(new ASTNodes::VarBaseNode(astn->getMemName(), nullptr, varacc));
 		printfTransferMsg("FactorASTN", false);
 		return std::dynamic_pointer_cast<ASTNodes::BasicNode>(varbase);
 	case _ERRORFACTOR:
