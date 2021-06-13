@@ -570,6 +570,7 @@ void ASTTransfer::TransferStmtListASTN(SPLAST::StmtListASTN * astn)
 
 void ASTTransfer::TransferStmtASTN(SPLAST::StmtASTN * astn)
 {
+	if(astn == nullptr) return;
 	printfTransferMsg("StmtASTN", true);
 	std::shared_ptr<ASTNodes::StmtSeqNode> seq(new ASTNodes::StmtSeqNode());
 	std::shared_ptr<std::vector<std::shared_ptr<ASTNodes::BasicNode>>> temp;
